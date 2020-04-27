@@ -1,0 +1,225 @@
+#![enable(implicit_some)]
+Container(
+    transform: (
+        id: "sub_menu",
+        anchor: Middle,
+        stretch: XY( x_margin: 0.0, y_margin: 0.0, keep_aspect_ratio: true),
+
+        // here the z-value is relevant to get shown `in front of' any other UI elements
+        z: 2.0,
+
+        width: 1440.0,
+        height: 1440.0,
+    ),
+    background: SolidColor(0.0, 0.0, 0.0, 0.0),
+    children: [
+        Button(
+            transform: (
+                id: "stroke_line",
+                x: 746,
+                y: -48,
+                z: 2.0,
+
+                width: 290.0,
+                height: 32.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Line                  A",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 20.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "stroke_arc",
+                x: 746,
+                y: -80,
+                z: 2.0,
+                width: 290.0,
+                height: 32.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Arc                   S",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 20.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "stroke_arc_rev",
+                x: 746,
+                y: -112,
+                z: 2.0,
+                width: 290.0,
+                height: 32.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Arc Rev               D",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 20.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "stroke_bezier",
+                x: 746,
+                y: -144,
+                z: 2.0,
+                width: 290.0,
+                height: 32.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Bezier                F",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 20.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "stroke_close",
+                x: 746,
+                y: -176,
+                z: 2.0,
+                width: 290.0,
+                height: 32.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Close                 Z",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 20.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "stroke_arc_full",
+                x: 746,
+                y: -208,
+                z: 2.0,
+                width: 290.0,
+                height: 32.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Arc(full)             T",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 20.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "stroke_arc_rev_full",
+                x: 746,
+                y: -240,
+                z: 2.0,
+                width: 290.0,
+                height: 32.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Arc Rev(full)         Y",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 20.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "stroke_clear_selection",
+                x: 746,
+                y: -272,
+                z: 2.0,
+                width: 290.0,
+                height: 32.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Clear Selection     Esc",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 20.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "stroke_erase_segment",
+                x: 746,
+                y: -304,
+                z: 2.0,
+                width: 290.0,
+                height: 32.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Erase Segment   BkSpace",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 20.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+    ]
+)

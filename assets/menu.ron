@@ -1,0 +1,510 @@
+#![enable(implicit_some)]
+Container(
+    transform: (
+        id: "menu",
+        anchor: TopMiddle,
+        stretch: XY( x_margin: 0.0, y_margin: 0.0, keep_aspect_ratio: true),
+
+        // here the z-value is relevant to get shown `in front of' any other UI elements
+        z: 2.0,
+
+        width: 720.0,
+        height: 32.0,
+    ),
+    background: SolidColor(1.0, 1.0, 1.0, 1.0),
+    children: [
+        Button(
+            transform: (
+                id: "dot_menu",
+                x: 30,
+                y: -24,
+
+                // because of the container, the button will react `before' the elements below it,
+                // but we also want to fully draw this button in front of the other elements as well.
+                z: 2.0,
+
+                width: 60.0,
+                height: 16.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "⠶",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 12.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "file_menu",
+                x: 90.0,
+                y: -24,
+                z: 2.0,
+                width: 60.0,
+                height: 16.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "File",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "edit_menu",
+                x: 150.0,
+                y: -24,
+                z: 2.0,
+                width: 60.0,
+                height: 16.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Edit",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "view_menu",
+                x: 210.0,
+                y: -24,
+                z: 2.0,
+                width: 60.0,
+                height: 16.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "View",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "layers_menu",
+                x: 270.0,
+                y: -24,
+                z: 2.0,
+                width: 60.0,
+                height: 16.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Layers",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+         Button(
+            transform: (
+                id: "stroke_menu",
+                x: 330.0,
+                y: -24,
+                z: 2.0,
+                width: 60.0,
+                height: 16.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Stroke",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+         Button(
+            transform: (
+                id: "control_menu",
+                x: 390.0,
+                y: -24,
+                z: 2.0,
+                width: 60.0,
+                height: 16.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Control",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+         Button(
+            transform: (
+                id: "style_menu",
+                x: 450.0,
+                y: -24,
+                z: 2.0,
+                width: 60.0,
+                height: 16.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Style",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        // now we define set of transpartent buttons that sit in front
+        // of the icon 'buttons', enabling us to draw our buttons, but 
+        // many use of the UI event system to control them
+        Button(
+            transform: (
+                id: "line_icon",
+                x: 38.0,
+                y: -715,
+                z: 2.0,
+                width: 26.0,
+                height: 28.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "arc",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 0.0),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 0.0),
+                press_image: SolidColor(0., 0., 0., 0.0),
+                normal_text_color: (0.0, 0.0, 0.0, 0.0),
+                hover_text_color: (1., 1., 1., 0.0),
+                press_text_color: (1., 1., 1., 0.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "arc_icon",
+                x: 69.0,
+                y: -715,
+                z: 2.0,
+                width: 26.0,
+                height: 28.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "arc",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 0.0),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 0.0),
+                press_image: SolidColor(0., 0., 0., 0.0),
+                normal_text_color: (0.0, 0.0, 0.0, 0.0),
+                hover_text_color: (1., 1., 1., 0.0),
+                press_text_color: (1., 1., 1., 0.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "arc_rev_icon",
+                x: 110.0,
+                y: -715,
+                z: 2.0,
+                width: 26.0,
+                height: 28.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "arc",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 0.0),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 0.0),
+                press_image: SolidColor(0., 0., 0., 0.0),
+                normal_text_color: (0.0, 0.0, 0.0, 0.0),
+                hover_text_color: (1., 1., 1., 0.0),
+                press_text_color: (1., 1., 1., 0.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "bezier_icon",
+                x: 141.0,
+                y: -715,
+                z: 2.0,
+                width: 26.0,
+                height: 28.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "b",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 0.0),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 0.0),
+                press_image: SolidColor(0., 0., 0., 0.0),
+                normal_text_color: (0.0, 0.0, 0.0, 0.0),
+                hover_text_color: (1., 1., 1., 0.0),
+                press_text_color: (1., 1., 1., 0.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "close_icon",
+                x: 172.0,
+                y: -715,
+                z: 2.0,
+                width: 26.0,
+                height: 28.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "c",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 0.0),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 0.0),
+                press_image: SolidColor(0., 0., 0., 0.0),
+                normal_text_color: (0.0, 0.0, 0.0, 0.0),
+                hover_text_color: (1., 1., 1., 0.0),
+                press_text_color: (1., 1., 1., 0.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "linecap_icon",
+                x: 203.0,
+                y: -715,
+                z: 2.0,
+                width: 26.0,
+                height: 28.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "lc",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 0.0),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 0.0),
+                press_image: SolidColor(0., 0., 0., 0.0),
+                normal_text_color: (0.0, 0.0, 0.0, 0.0),
+                hover_text_color: (1., 1., 1., 0.0),
+                press_text_color: (1., 1., 1., 0.0),
+            )
+        ),
+               Button(
+            transform: (
+                id: "linejoin_icon",
+                x: 234,
+                y: -715,
+                z: 2.0,
+                width: 29.0,
+                height: 28.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "lj",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 0.0),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 0.0),
+                press_image: SolidColor(0., 0., 0., 0.0),
+                normal_text_color: (0.0, 0.0, 0.0, 0.0),
+                hover_text_color: (1., 1., 1., 0.0),
+                press_text_color: (1., 1., 1., 0.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "thickness_icon",
+                x: 268,
+                y: -715,
+                z: 2.0,
+                width: 29.0,
+                height: 28.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "lj",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 0.0),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 0.0),
+                press_image: SolidColor(0., 0., 0., 0.0),
+                normal_text_color: (0.0, 0.0, 0.0, 0.0),
+                hover_text_color: (1., 1., 1., 0.0),
+                press_text_color: (1., 1., 1., 0.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "mirror_icon",
+                x: 302,
+                y: -715,
+                z: 2.0,
+                width: 29.0,
+                height: 28.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "mi",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 0.0),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 0.0),
+                press_image: SolidColor(0., 0., 0., 0.0),
+                normal_text_color: (0.0, 0.0, 0.0, 0.0),
+                hover_text_color: (1., 1., 1., 0.0),
+                press_text_color: (1., 1., 1., 0.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "fill_icon",
+                x: 334,
+                y: -715,
+                z: 2.0,
+                width: 29.0,
+                height: 28.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "fl",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 0.0),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 0.0),
+                press_image: SolidColor(0., 0., 0., 0.0),
+                normal_text_color: (0.0, 0.0, 0.0, 0.0),
+                hover_text_color: (1., 1., 1., 0.0),
+                press_text_color: (1., 1., 1., 0.0),
+            )
+        ),
+        // Editable text for interactive fiction input
+        Container(
+            transform: (
+                id: "colour_hex_container",
+                x: 385,
+                y: -716,
+                width: 10.,
+                height: 20.,
+                tab_order: 1,
+                anchor: TopLeft,
+            ),
+            background: SolidColor(0.5721227, 0.3220596, 0.92656577, 1.0),
+            children: [
+                Label(
+                    transform: (
+                        id: "colour_hex",
+                        width: 10.,
+                        height: 20.,
+                        tab_order: 1,
+                        anchor: Middle,
+                        stretch: XY(x_margin: 0., y_margin: 0., keep_aspect_ratio: false),
+                        mouse_reactive: true,
+                        selectable: 0,
+                    ),
+                    text: (
+                        text: "#",
+                        font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                        font_size: 16.,
+                        color: (0.0, 0.0, 0.0, 1.0),
+                        align: MiddleLeft,
+                    )
+                ),
+            ]
+        ),
+        Container(
+            transform: (
+                id: "colour_input_container",
+                x: 420,
+                y: -716,
+                width: 60.,
+                height: 20.,
+                tab_order: 1,
+                anchor: TopLeft,
+            ),
+            background: SolidColor(0.5721227, 0.3220596, 0.92656577, 1.0),
+            children: [
+                Label(
+                    transform: (
+                        id: "colour_input",
+                        width: 60.,
+                        height: 20.,
+                        tab_order: 1,
+                        anchor: Middle,
+                        stretch: XY(x_margin: 0., y_margin: 0., keep_aspect_ratio: false),
+                        mouse_reactive: true,
+                        selectable: 0,
+                    ),
+                    text: (
+                        text: "000000",
+                        font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                        font_size: 16.,
+                        color: (0.0, 0.0, 0.0, 1.0),
+                        align: MiddleLeft,
+                        editable: (
+                            max_length: 6,
+                            selected_text_color: (0.09, 0.02, 0.25, 1.0),
+                            selected_background_color: (0.0, 0.0, 0.0, 1.0),
+                        ),
+                    )
+                ),
+            ]
+        ),
+    ]
+)

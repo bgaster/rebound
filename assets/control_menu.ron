@@ -1,0 +1,156 @@
+#![enable(implicit_some)]
+Container(
+    transform: (
+        id: "sub_menu",
+        anchor: Middle,
+        stretch: XY( x_margin: 0.0, y_margin: 0.0, keep_aspect_ratio: true),
+
+        // here the z-value is relevant to get shown `in front of' any other UI elements
+        z: 2.0,
+
+        width: 720.0,
+        height: 720.0,
+    ),
+    background: SolidColor(0.0, 0.0, 0.0, 0.0),
+    children: [
+        Button(
+            transform: (
+                id: "control_add_point",
+                x: 433,
+                y: -24,
+                z: 2.0,
+
+                width: 145.0,
+                height: 16.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Add Point         Enter",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "control_move_up",
+                x: 433,
+                y: -40,
+                z: 2.0,
+                width: 145.0,
+                height: 16.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Move Up              Up",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "control_move_right",
+                x: 433,
+                y: -56,
+                z: 2.0,
+                width: 145.0,
+                height: 16.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Move Right        Right",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "control_move_down",
+                x: 433,
+                y: -72,
+                z: 2.0,
+                width: 145.0,
+                height: 16.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Move Down          Down",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "control_move_left",
+                x: 433,
+                y: -88,
+                z: 2.0,
+                width: 145.0,
+                height: 16.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Move Left          Left",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "control_remove_point",
+                x: 433,
+                y: -104,
+                z: 2.0,
+                width: 145.0,
+                height: 16.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Remove Point          X",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 10.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+    ]
+)

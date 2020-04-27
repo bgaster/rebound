@@ -1,0 +1,13 @@
+/*!
+    Displayconfig for Rebound
+*/
+(
+  title: "Rebound a vector editor, for logos",
+  brightness: 1,
+  dimensions: Some((720, 720)),
+  min_dimensions: None,
+  max_dimensions: None,
+  multisampling: 0,
+  resizable: false,
+  decorations: true,
+)

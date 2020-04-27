@@ -1,0 +1,64 @@
+#![enable(implicit_some)]
+Container(
+    transform: (
+        id: "sub_menu",
+        anchor: Middle,
+        stretch: XY( x_margin: 0.0, y_margin: 0.0, keep_aspect_ratio: true),
+
+        // here the z-value is relevant to get shown `in front of' any other UI elements
+        z: 2.0,
+
+        width: 720.0,
+        height: 720.0,
+    ),
+    background: SolidColor(0.0, 0.0, 0.0, 0.0),
+    children: [
+        Button(
+            transform: (
+                id: "open_theme",
+                x: 100,
+                y: -44,
+                z: 2.0,
+
+                width: 200.0,
+                height: 32.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Open Theme",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 24.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "reset_theme",
+                x: 100.0,
+                y: -76,
+                z: 2.0,
+                width: 200.0,
+                height: 32.0,
+                anchor: TopLeft,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Reset Theme",
+                font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
+                font_size: 20.0,
+                normal_image: SolidColor(1., 1., 1., 1.),
+                hover_image: SolidColor(0.0, 0.0, 0.0, 1.),
+                press_image: SolidColor(0., 0., 0., 1.),
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                hover_text_color: (1., 1., 1., 1.0),
+                press_text_color: (1., 1., 1., 1.0),
+            )
+        ),
+    ]
+)
