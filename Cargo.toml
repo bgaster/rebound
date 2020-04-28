@@ -7,16 +7,17 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-amethyst = { path = "../amethyst_lyon/external/amethyst", features = ["metal"] }
-#amethyst = "0.15.0"
-#amethyst_error = "0.5.0"
+#amethyst = { path = "../amethyst_lyon/external/amethyst", features = ["metal"] }
+amethyst = "0.15.0"
+amethyst_error = "0.5.0"
 # amethyst = { git = "https://github.com/amethyst/amethyst" }
 #amethyst_error = { git = "https://github.com/amethyst/amethyst" }
-amethyst_error = { path = "../amethyst_lyon/external/amethyst/amethyst_error" }
+#amethyst_error = { path = "../amethyst_lyon/external/amethyst/amethyst_error" }
 derivative = "2.1.0"
 glsl-layout = "0.3.2"
 #lyon = { path = "./external/lyon" }
-amethyst_lyon = { path = "../amethyst_lyon", features = ["metal"] }
+#amethyst_lyon = { path = "../amethyst_lyon", features = ["metal"] }
+amethyst_lyon = { git = "https://github.com/bgaster/amethyst_lyon" }
 #amethyst_lyon = "0.1.0"
 lyon = "0.15.6"
 log = { version = "0.4.8", features = ["serde"] }

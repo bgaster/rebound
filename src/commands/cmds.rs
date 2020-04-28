@@ -34,7 +34,7 @@ pub const NUMBER_LAYERS: usize = 3;
 pub struct Layer {
     pub entities: Vec<SVGEntity>,
     pub colour: [f32;4],
-    pub thinkness: f32,
+    pub thickness: f32,
 }
 
 impl Default for Layer {
@@ -42,7 +42,7 @@ impl Default for Layer {
         Self {
             entities: Vec::new(),
             colour: [0.0, 0.0, 0.0, 1.0],
-            thinkness: 1.0,
+            thickness: 1.0,
         }
     }
 }
@@ -91,9 +91,9 @@ impl Draw {
     }
 
     /// increment thinkness for current layer
-    pub fn inc_thinkness(&mut self, inc: f32) {
-        if self.layers[self.active_layer].thinkness + inc >= 0.0 {
-            self.layers[self.active_layer].thinkness  += inc;
+    pub fn inc_thickness(&mut self, inc: f32) {
+        if self.layers[self.active_layer].thickness + inc >= 0.0 {
+            self.layers[self.active_layer].thickness  += inc;
         }
     }
 

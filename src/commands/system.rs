@@ -71,17 +71,17 @@ use amethyst::{
                 }
                 // increment line thinkness for current layer
                 Command::Input(ActionBinding::StyleThicker) => {
-                    draw.inc_thinkness(1.0);
+                    draw.inc_thickness(1.0);
                 }
                 Command::Input(ActionBinding::StyleThicker5) => {
-                    draw.inc_thinkness(5.0);
+                    draw.inc_thickness(5.0);
                 }
                 // decrement line thinkness for current layer
                 Command::Input(ActionBinding::StyleThinner) => {
-                    draw.inc_thinkness(-1.0);
+                    draw.inc_thickness(-1.0);
                 }
                 Command::Input(ActionBinding::StyleThinner5) => {
-                    draw.inc_thinkness(-5.0);
+                    draw.inc_thickness(-5.0);
                 }
                 // set draw colour for current layer
                 Command::DrawColour(colour) => {
