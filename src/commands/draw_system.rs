@@ -60,8 +60,6 @@ impl<'a> System<'a> for DrawSystem {
     );
 
     fn run(&mut self, (draw, move_to, line_to, mut mesh_storage, meshes): Self::SystemData) { 
-
-       
         let fill_options = FillOptions::default();
         let mut geometry: VertexBuffers<VertexType, u16> = VertexBuffers::new();
         let mut tessellator_stroke = StrokeTessellator::new();
