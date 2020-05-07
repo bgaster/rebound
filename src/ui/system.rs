@@ -16,7 +16,7 @@ use amethyst::{
 use crate::{
    ui::mainui::{MainUI},  
    bindings::{InputBindingTypes},
-   commands::{Command},
+   commands::{Command, Draw, HoverMode},
 };
 
 use amethyst_lyon::{
@@ -49,12 +49,15 @@ impl<'a> System<'a> for RUIEventHandlerSystem {
        Read<'a, EventChannel<InputEvent<InputBindingTypes>>>,
        ReadStorage<'a, UiText>,
        Write<'a, MainUI>,
+       Write<'a, Draw>,
        WriteStorage<'a, Mesh>,
        Write<'a, EventChannel<Command>>,
        Read<'a, InputHandler<InputBindingTypes>>,
     );
 
-   fn run(&mut self, (ui_events, input_events, ui_text, mut menu, mesh_storage, mut commands, input): Self::SystemData) {
+   fn run(
+      &mut self, 
+      (ui_events, input_events, ui_text, mut menu, mut draw, mesh_storage, mut commands, input): Self::SystemData) {
       
       // update UI to know the current mouse position
       if let Some(mouse_position) = input.mouse_position() {
@@ -90,7 +93,9 @@ impl<'a> System<'a> for RUIEventHandlerSystem {
          match *ev {
             InputEvent::MouseButtonPressed(Left) => {
                // process grid clicks, e.g. setting active points
-               menu.grid_click(&mut commands);
+               if !menu.submenu_active {
+                  menu.grid_click(&mut commands);
+               }
             }
             _ => {
                //info!("[RUI SYSTEM] You just interacted with a io element: {:?} {:?}", ev, input.mouse_position());
@@ -101,17 +106,19 @@ impl<'a> System<'a> for RUIEventHandlerSystem {
       for ev in ui_events.read(&mut self.reader_id) {
          //info!("{:?}", ev);
          if ev.event_type == UiEventType::HoverStart {
+            let e = Some(ev.target);
             // handle hover start events for ICONs
-            menu.hover(Some(ev.target));
+            menu.hover(e);
+            menu.hover_event(HoverMode::Start, e, &mut commands);
          }
          if ev.event_type == UiEventType::HoverStop {
             // handle hover events for ICONs
             menu.hover(None);
+            menu.hover_event(HoverMode::End, Some(ev.target), &mut commands);
          }
-         
          if ev.event_type == UiEventType::Click {
             // handle menu ICON click events
-            menu.click(Some(ev.target), &mut commands);
+            menu.click(Some(ev.target), &mut commands); 
          }
          // handle colour input UI events
          if ev.event_type == UiEventType::ValueCommit {

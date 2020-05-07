@@ -33,7 +33,7 @@ libmath = "0.2.1"
 
 [features]
 # default = ["vulkan"] # For linux Windows
-default = ["metal"] # For osx
+default = ["metal", "amethyst/no-slow-safety-checks"] # For osx
 empty = ["amethyst/empty"]
 metal = ["amethyst/metal"]
 vulkan = ["amethyst/vulkan"]

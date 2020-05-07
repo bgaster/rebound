@@ -187,7 +187,7 @@ Container(
                 mouse_reactive: true,
             ),
             button: (
-                text: "Thinner +5           ^]",
+                text: "Thinner -5           ^]",
                 font: File("fonts/FreeMonospaced-7ZXP.ttf", ("TTF", ())),
                 font_size: 20.0,
                 normal_image: SolidColor(1., 1., 1., 1.),

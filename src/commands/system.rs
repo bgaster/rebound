@@ -12,10 +12,9 @@ use amethyst::{
   
   use crate::{
     ui::mainui::{MainUI},  
-    commands::{Command, Draw},
+    commands::{Command, Draw, HoverMode},
     bindings::{ActionBinding},
     commands::svg_path::*,
-    commands::svg::{ForegroundLayer, MiddlegroundLayer, BackgroundLayer},
   };
   
   use log::info;
@@ -42,12 +41,14 @@ use amethyst::{
          Write<'a, Draw>,
          Entities<'a>,
          WriteStorage<'a, MoveTo>,
-         WriteStorage<'a, LineTo>
+         WriteStorage<'a, LineTo>,
+         WriteStorage<'a, QuadraticBeizer>,
+         WriteStorage<'a, Close>
      );
   
      fn run(&mut self, 
         (commands, mut menu, mut draw, entities, 
-            mut move_to, mut line_to): Self::SystemData) {
+            mut move_to, mut line_to, mut quad_beizer, mut close): Self::SystemData) {
         // process any incoming commands
         for event in commands.read(&mut self.reader_id) {
             match event {
@@ -62,12 +63,15 @@ use amethyst::{
                 // set active layer
                 Command::Input(ActionBinding::LayersBackground) => {
                     draw.layer_background();
+                    menu.set_colour(draw.get_colour());
                 }
                 Command::Input(ActionBinding::LayersMiddleground) => {
                     draw.layer_middleground();
+                    menu.set_colour(draw.get_colour());
                 }
                 Command::Input(ActionBinding::LayersForeground) => {
                     draw.layer_foreground();
+                    menu.set_colour(draw.get_colour());
                 }
                 // increment line thinkness for current layer
                 Command::Input(ActionBinding::StyleThicker) => {
@@ -83,6 +87,12 @@ use amethyst::{
                 Command::Input(ActionBinding::StyleThinner5) => {
                     draw.inc_thickness(-5.0);
                 }
+                Command::Input(ActionBinding::StyleLineCap) => {
+                    draw.linecap();
+                }
+                Command::Input(ActionBinding::StyleLineJoin) => {
+                    draw.linejoin();
+                }
                 // set draw colour for current layer
                 Command::DrawColour(colour) => {
                     draw.set_colour(colour);
@@ -91,9 +101,29 @@ use amethyst::{
                 Command::AddControlPoint(point) => {
                     draw.add_point(point);
                 }
+                // draw beizer
+                Command::Input(ActionBinding::StrokeBezier) => {
+                    draw.cubic_beizer(&entities, &mut move_to, &mut quad_beizer);
+                }
                 // draw line
                 Command::Input(ActionBinding::StrokeLine) => {
                     draw.line(&entities, &mut move_to, &mut line_to);
+                }
+                // close path
+                Command::Input(ActionBinding::StrokeClose) => {
+                    draw.close(&entities, &mut close);
+                }
+                // toggle fill mode
+                Command::Input(ActionBinding::StyleFill) => {
+                    draw.fill();
+                }
+                // hover action begin
+                Command::Hover(HoverMode::Start, action) => {
+                    draw.hover_start((*action).clone());
+                }
+                // hover action end
+                Command::Hover(HoverMode::End, _) => {
+                    draw.hover_end();
                 }
                 _ => {
                     info!("{:?}", event);

@@ -21,7 +21,7 @@ use crate:: {
 
 #[derive(Default)]
 pub struct MainAppState {
-    main_menu: MainUI,
+    //main_menu: MainUI,
 }
 
 impl SimpleState for MainAppState {
@@ -31,14 +31,15 @@ impl SimpleState for MainAppState {
 
         let dimensions = (*world.read_resource::<ScreenDimensions>()).clone();
 
-        self.main_menu = (*world.read_resource::<MainUI>()).clone();
+        //self.main_menu = (*world.read_resource::<MainUI>()).clone();
+        world.fetch_mut::<MainUI>().submenu_active = false;
 
         // Place the camera
         init_camera(world, &dimensions);
     }
 
     fn on_stop(&mut self, _data: StateData<GameData>) {
-        self.main_menu = MainUI::default();
+        //self.main_menu = MainUI::default();
     }
 
     fn handle_event(
@@ -61,8 +62,8 @@ impl SimpleState for MainAppState {
                 target,
             }) => {
                 let state = Trans::None;
-                if Some(target) == self.main_menu.root {
-                }
+                // if Some(target) == self.main_menu.root {
+                // }
                 state
             }
             StateEvent::Ui(UiEvent {
@@ -71,38 +72,52 @@ impl SimpleState for MainAppState {
             }) => {
                 // handle transition to sub-menu state
                 let mut state = Trans::None;
-                if Some(target) == self.main_menu.dot_menu {
+                let mut switch = false;
+                if Some(target) == world.fetch::<MainUI>().dot_menu {
                     world.insert(dot_menu());
                     state = Trans::Switch(Box::new(SubMenuState::default()));
+                    switch = true;
                 }
-                else if Some(target) == self.main_menu.file_menu {
+                else if Some(target) == world.fetch::<MainUI>().file_menu {
                     world.insert(file_menu());
                     state = Trans::Switch(Box::new(SubMenuState::default()));
+                    switch = true;
                 }
-                else if Some(target) == self.main_menu.edit_menu {
+                else if Some(target) == world.fetch::<MainUI>().edit_menu {
                     world.insert(edit_menu());
                     state = Trans::Switch(Box::new(SubMenuState::default()));
+                    switch = true;
                 }
-                else if Some(target) == self.main_menu.view_menu {
+                else if Some(target) == world.fetch::<MainUI>().view_menu {
                     world.insert(view_menu());
                     state = Trans::Switch(Box::new(SubMenuState::default()));
+                    switch = true;
                 }
-                else if Some(target) == self.main_menu.layers_menu {
+                else if Some(target) == world.fetch::<MainUI>().layers_menu {
                     world.insert(layers_menu());
                     state = Trans::Switch(Box::new(SubMenuState::default()));
+                    switch = true;
                 }
-                else if Some(target) == self.main_menu.stroke_menu {
+                else if Some(target) == world.fetch::<MainUI>().stroke_menu {
                     world.insert(stroke_menu());
                     state = Trans::Switch(Box::new(SubMenuState::default()));
+                    switch = true;
                 }
-                else if Some(target) == self.main_menu.control_menu {
+                else if Some(target) == world.fetch::<MainUI>().control_menu {
                     world.insert(control_menu());
                     state = Trans::Switch(Box::new(SubMenuState::default()));
+                    switch = true;
                 }
-                else if Some(target) == self.main_menu.style_menu {
+                else if Some(target) == world.fetch::<MainUI>().style_menu {
                     world.insert(style_menu());
                     state = Trans::Switch(Box::new(SubMenuState::default()));
+                    switch = true;
                 }
+                if switch {
+                    let mut menu = world.fetch_mut::<MainUI>();
+                    menu.submenu_active = true;
+                }
+                
                 state
             }
             StateEvent::Input(input) => {

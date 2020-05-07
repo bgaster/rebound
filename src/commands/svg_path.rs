@@ -79,6 +79,7 @@ impl SVGPathPart for CubicBeizer {
      }
 
     fn tessellate(&self, builder: &mut Builder) {
+        builder.cubic_bezier_to(self.point_cs, self.point_es, self.point_n);
     }
 }
 
@@ -102,7 +103,7 @@ impl SVGPathPart for QuadraticBeizer {
     }
 
     fn tessellate(&self, builder: &mut Builder) {
-         
+        builder.quadratic_bezier_to(self.point_c, self.point_n);
     }
 }
 
@@ -126,7 +127,7 @@ impl SVGPathPart for EllipticalArc {
         let sweep = if self.sweep { 1 } else { 0 };
 
         let mut o = String::new();
-        o.push_str(&format!("A{} {} {} {} {} {},{}", 
+        o.push_str(&format!("A{} {} {} {} {} {},{} ", 
             self.x_radius, self.y_radius, self.x_axis_rotation, la, sweep, self.point.x, self.point.y)[..]);
         o
     }
@@ -134,4 +135,24 @@ impl SVGPathPart for EllipticalArc {
     fn tessellate(&self, builder: &mut Builder) {
          //builder.arc(self.point, radii: Vector, sweep_angle: Angle, x_rotation: Angle)
     }
+}
+
+#[derive(Default, Debug, PartialEq, Clone)]
+pub struct Close {
+}
+
+impl SVGPathPart for Close {
+     fn gen_output(&self) -> String {
+        let mut o = String::new();
+        o.push_str(&format!("Z ",)[..]);
+        o
+     }
+
+     fn tessellate(&self, builder: &mut Builder) {
+        builder.close();
+     }
+}
+
+impl Component for Close {
+    type Storage = DenseVecStorage<Self>;
 }

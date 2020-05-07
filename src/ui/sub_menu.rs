@@ -14,6 +14,7 @@ use amethyst::{
 use crate::{
     states::{MainAppState},    
     bindings::{ActionBinding},
+    ui::mainui::{MainUI}, 
     commands::{Command},   
 };
 

@@ -21,7 +21,7 @@ use palette::{Pixel, Srgba};
 
 use crate::{
     bindings::{ActionBinding},
-    commands::{Command},
+    commands::{Command, HoverMode},
 };
 
 extern crate math;
@@ -69,6 +69,8 @@ const MOUSE_CURSOR_COLOUR: [f32;4] = [0.0, 0.0, 0.0, 1.0];
 
 #[derive(Clone)]
 pub struct MainUI {
+    // sub menus
+    pub submenu_active: bool,
     pub dot_menu: Option<Entity>,
     pub file_menu: Option<Entity>,
     pub edit_menu: Option<Entity>,
@@ -121,6 +123,7 @@ pub struct MainUI {
 impl Default for MainUI {
     fn default() -> Self {
         MainUI {
+            submenu_active: false,
             dot_menu: None,
             file_menu: None,
             edit_menu: None,
@@ -234,6 +237,32 @@ impl MainUI {
                     Err(_) => {}
                 }
             }
+        }
+    }
+
+    /// set the current draw colour
+    pub fn set_colour(&mut self, colour: [f32;4]) {
+        self.draw_colour = colour;
+    }
+
+    /// Is one of the ICONs clicked? if so, then send corresponding message out on bus
+    pub fn hover_event<'a>(
+        &self, 
+        mode: HoverMode,
+        entity: Option<Entity>, 
+        commands: &mut Write<'a,  EventChannel::<Command>>) {
+
+        if entity == self.line_icon {    
+            commands.single_write(Command::Hover(mode, ActionBinding::StrokeLine));
+        }
+        else if entity == self.arc_icon {
+            commands.single_write(Command::Hover(mode, ActionBinding::StrokeArc));
+        }
+        else if entity == self.arc_rev_icon {
+            commands.single_write(Command::Hover(mode, ActionBinding::StrokeArcRev));
+        }
+        else if entity == self.bezier_icon {
+            commands.single_write(Command::Hover(mode, ActionBinding::StrokeBezier));
         }
     }
 

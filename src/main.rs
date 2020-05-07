@@ -12,6 +12,7 @@ use amethyst::{
     },
     core::{
         transform::TransformBundle, 
+        frame_limiter::FrameRateLimitStrategy,
     },
     prelude::*,
     renderer::{
@@ -22,6 +23,8 @@ use amethyst::{
     ui::{RenderUi, UiBundle},
     utils::{application_root_dir},
 };
+
+use std::time::Duration;
 
 use amethyst_lyon::{RenderLyon};
 
@@ -84,7 +87,10 @@ fn main() -> amethyst::Result<()> {
                 .with_plugin(RenderLyon::default()),     
         )?;
 
-    let mut game = Application::new(assets_dir, states::LoadState::default(), game_data)?;
+    // To keep CPU useage down a bit limited to 30 FPS, not an issue for this app
+    let mut game = Application::build(assets_dir, states::LoadState::default())?
+                    .with_frame_limit(FrameRateLimitStrategy::SleepAndYield(Duration::from_millis(2)), 30)
+                    .build(game_data)?;
 
     game.run();
     Ok(())

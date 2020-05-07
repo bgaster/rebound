@@ -7,8 +7,7 @@
 use amethyst::{
     //derive::SystemDesc,
     core::SystemDesc,
-    ecs::{Read, Write, WriteStorage, System, SystemData, Entities, ReadStorage, World, Join},
-    shrev::{EventChannel, ReaderId},
+    ecs::{Read, WriteStorage, System, SystemData, ReadStorage, World},
 };
   
 use amethyst_lyon::{
@@ -22,11 +21,11 @@ use lyon::tessellation::*;
  
 
 use crate::{
-    ui::mainui::{MainUI},  
-    commands::{Command, Draw, NUMBER_LAYERS},
-    bindings::{ActionBinding},
+    commands::{Draw, NUMBER_LAYERS},
     commands::svg_path::*,
+    commands::draw_utils::*,
     vector_meshes::*,
+    bindings::{ActionBinding},
 };
   
 use log::info;
@@ -55,11 +54,15 @@ impl<'a> System<'a> for DrawSystem {
         Read<'a, Draw>,
         ReadStorage<'a, MoveTo>,
         ReadStorage<'a, LineTo>,
+        ReadStorage<'a, QuadraticBeizer>,
+        ReadStorage<'a, Close>,
         WriteStorage<'a, Mesh>,
         Read<'a, Meshes>,
     );
 
-    fn run(&mut self, (draw, move_to, line_to, mut mesh_storage, meshes): Self::SystemData) { 
+    fn run(
+        &mut self, 
+        (draw, move_to, line_to, quad_beizer, close, mut mesh_storage, meshes): Self::SystemData) { 
         let fill_options = FillOptions::default();
         let mut geometry: VertexBuffers<VertexType, u16> = VertexBuffers::new();
         let mut tessellator_stroke = StrokeTessellator::new();
@@ -70,7 +73,7 @@ impl<'a> System<'a> for DrawSystem {
             let stroke_options = StrokeOptions::tolerance(0.02)
                 .with_line_width(draw.layers[layer].thickness)
                 .with_line_join(LineJoin::Round)
-                .with_line_cap(LineCap::Round);
+                .with_line_cap(draw.layers[layer].linecap);
 
             let mut builder = Path::builder();
 
@@ -84,14 +87,87 @@ impl<'a> System<'a> for DrawSystem {
                         l_to.tessellate(&mut builder);
                         //println!("{}", l_to.gen_output());
                     }
+                    else if let Some(q_beizer) = quad_beizer.get(entity) {
+                        q_beizer.tessellate(&mut builder);
+                    }
+                    else if let Some(close) = close.get(entity) {
+                        close.tessellate(&mut builder);
+                    }
                 }
             }
-    
-            tessellate_stroke(
-                &mut geometry, 
-                &mut tessellator_stroke, &stroke_options, 
-                builder, 
-                draw.layers[layer].colour);
+            
+            if draw.is_fill(layer) {
+                tessellate_fill(
+                    &mut geometry, 
+                    &mut tessellator_fill, &fill_options, 
+                    builder, 
+                    draw.layers[layer].colour);
+            }
+            else {
+                tessellate_stroke(
+                    &mut geometry, 
+                    &mut tessellator_stroke, &stroke_options, 
+                    builder, 
+                    draw.layers[layer].colour);
+            }
+        }
+
+        // renderer any control points
+        for cp in &draw.points {
+            let mut builder = Path::builder();
+            circle(&mut builder);
+            let scale = Scale::new(3.0);
+            let v = vector(cp.x, cp.y);
+            let p = builder.build();
+            let stroke_options = StrokeOptions::tolerance(0.02)
+                .with_line_width(1.0)
+                .with_line_join(LineJoin::Round)
+                .with_line_cap(LineCap::Round);
+            tessellator_stroke.tessellate_path(
+                &p,
+                &stroke_options,
+                &mut BuffersBuilder::new(&mut geometry, |pos: Point, _: StrokeAttributes| {
+                    // scale and then translate
+                    let pos = scale.transform_point(pos) + v;
+                    VertexType {
+                        position: pos.to_array(),
+                        colour: [0.,0.,0.,1.0],
+                    }
+                }),
+            ).unwrap();
+        }
+
+        // is mouse currently over an icon for hover  
+        if let Some(action) = &draw.hover {
+            // use a local builder here as we need to use a different colour
+            let mut builder = Path::builder();
+            let parts = match action {
+                ActionBinding::StrokeLine => draw.hover_line(),
+                ActionBinding::StrokeArc =>  Vec::new(),
+                ActionBinding::StrokeArcRev => Vec::new(),
+                ActionBinding::StrokeBezier => draw.hover_cubic_beizer(),
+                _ => Vec::new()
+            };
+            for p in parts {
+                p.tessellate(&mut builder); 
+            }
+
+            let path = builder.build();
+            let stroke_options = StrokeOptions::tolerance(0.02)
+                .with_line_width(1.0)
+                .with_line_join(LineJoin::Round)
+                .with_line_cap(LineCap::Round);
+            tessellator_stroke.tessellate_path(
+                    &path,
+                    &stroke_options,
+                    &mut BuffersBuilder::new(&mut geometry, |pos: Point, _: StrokeAttributes| {
+                        // scale and then translate
+                        VertexType {
+                            position: pos.to_array(),
+                            colour: [1.,1.,1.,1.],
+                        }
+                    }),
+                ).unwrap();
         }
 
         // write generated geometry to mesh
