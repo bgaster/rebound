@@ -9,14 +9,25 @@ use amethyst::{
     prelude::*,
 };
 
+use amethyst_lyon::{
+    utils::{VertexType}
+};
+
+use crate::{
+    commands::draw_utils::*,
+};
+
 extern crate lyon;
-use lyon::math::{point, Point, Vector, vector, Scale};
+use lyon::math::{point, Point, Vector, vector, Scale, Angle};
 use lyon::path::{Path, Builder};
+use lyon::geom::{Arc, SvgArc, arc::ArcFlags};
 use lyon::tessellation::*;
 
 pub trait SVGPathPart : std::fmt::Debug {
     fn gen_output(&self) -> String;
-    fn tessellate(&self, builder: &mut Builder);
+    fn tessellate(&self, 
+        builder: &mut Builder,
+        geometry: &mut VertexBuffers<VertexType, u16>);
 }
 
 #[derive(Default, Debug, PartialEq, Clone)]
@@ -31,7 +42,7 @@ impl SVGPathPart for MoveTo {
         o
      }
 
-     fn tessellate(&self, builder: &mut Builder) {
+     fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>) {
         builder.move_to(self.point);
      }
 }
@@ -52,7 +63,7 @@ impl SVGPathPart for LineTo {
         o
      }
 
-    fn tessellate(&self, builder: &mut Builder) {
+    fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>) {
          builder.line_to(self.point);
     }
 }
@@ -78,8 +89,51 @@ impl SVGPathPart for CubicBeizer {
         o
      }
 
-    fn tessellate(&self, builder: &mut Builder) {
+    fn tessellate(&self, builder: &mut Builder, mut geometry: &mut VertexBuffers<VertexType, u16>) {
         builder.cubic_bezier_to(self.point_cs, self.point_es, self.point_n);
+        // add command point direclty
+        let stroke_options = StrokeOptions::tolerance(0.02)
+            .with_line_width(1.0)
+            .with_line_join(LineJoin::Round)
+            .with_line_cap(LineCap::Round);
+        let mut tessellator_stroke = StrokeTessellator::new();
+
+        let mut builder = Builder::new();
+        circle(&mut builder);
+        let scale = Scale::new(3.0);
+        let v = vector(self.point_cs.x, self.point_cs.y);
+        let p = builder.build();
+        tessellator_stroke.tessellate_path(
+            &p,
+            &stroke_options,
+            &mut BuffersBuilder::new(&mut geometry, |pos: Point, _: StrokeAttributes| {
+                // scale and then translate
+                let pos = scale.transform_point(pos) + v;
+                VertexType {
+                    position: pos.to_array(),
+                    colour: [1.,1.,1.,1.],
+                }
+            }),
+        ).unwrap();
+
+        let mut builder = Builder::new();
+        circle(&mut builder);
+        let scale = Scale::new(3.0);
+        let v = vector(self.point_es.x, self.point_es.y);
+        let p = builder.build();
+        tessellator_stroke.tessellate_path(
+            &p,
+            &stroke_options,
+            &mut BuffersBuilder::new(&mut geometry, |pos: Point, _: StrokeAttributes| {
+                // scale and then translate
+                let pos = scale.transform_point(pos) + v;
+                VertexType {
+                    position: pos.to_array(),
+                    colour: [1.,1.,1.,1.],
+                }
+            }),
+        ).unwrap();
+
     }
 }
 
@@ -102,8 +156,31 @@ impl SVGPathPart for QuadraticBeizer {
         o
     }
 
-    fn tessellate(&self, builder: &mut Builder) {
+    fn tessellate(&self, builder: &mut Builder, mut geometry: &mut VertexBuffers<VertexType, u16>) {
         builder.quadratic_bezier_to(self.point_c, self.point_n);
+        // add command point direclty
+        let stroke_options = StrokeOptions::tolerance(0.02)
+            .with_line_width(1.0)
+            .with_line_join(LineJoin::Round)
+            .with_line_cap(LineCap::Round);
+        let mut tessellator_stroke = StrokeTessellator::new();
+        let mut builder = Builder::new();
+        circle(&mut builder);
+        let scale = Scale::new(3.0);
+        let v = vector(self.point_c.x, self.point_c.y);
+        let p = builder.build();
+        tessellator_stroke.tessellate_path(
+            &p,
+            &stroke_options,
+            &mut BuffersBuilder::new(&mut geometry, |pos: Point, _: StrokeAttributes| {
+                // scale and then translate
+                let pos = scale.transform_point(pos) + v;
+                VertexType {
+                    position: pos.to_array(),
+                    colour: [1.,1.,1.,1.],
+                }
+            }),
+        ).unwrap();
     }
 }
 
@@ -113,13 +190,23 @@ impl Component for QuadraticBeizer {
 
 #[derive(Default, Debug, PartialEq, Clone)]
 pub struct EllipticalArc {
-    pub point: Point,
+    pub p1: Point,
+    pub p2: Point,
     pub x_radius: f32,
     pub y_radius: f32,
     pub x_axis_rotation: f32,
     pub large_arc: bool,
     pub sweep: bool,
 }
+
+
+// fn arc(
+//     &mut self, 
+//     center: TypedPoint2D<f32, UnknownUnit>, 
+//     radii: TypedVector2D<f32, UnknownUnit>, 
+//     sweep_angle: Angle<f32>, 
+//     x_rotation: Angle<f32>
+// )
 
 impl SVGPathPart for EllipticalArc {
     fn gen_output(&self) -> String {
@@ -128,13 +215,31 @@ impl SVGPathPart for EllipticalArc {
 
         let mut o = String::new();
         o.push_str(&format!("A{} {} {} {} {} {},{} ", 
-            self.x_radius, self.y_radius, self.x_axis_rotation, la, sweep, self.point.x, self.point.y)[..]);
+            self.x_radius, self.y_radius, self.x_axis_rotation, la, sweep, self.p2.x, self.p2.y)[..]);
         o
     }
 
-    fn tessellate(&self, builder: &mut Builder) {
-         //builder.arc(self.point, radii: Vector, sweep_angle: Angle, x_rotation: Angle)
+    fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>) {
+        // convert to an Lyon SVG ARC and then to a arc with centre notation, and then finally we can
+        // use Lyon to tessellate
+        let svg = SvgArc { 
+                from: self.p1, 
+                to: self.p2, 
+                radii: vector(self.x_radius, self.y_radius),
+                x_rotation: Angle { radians: self.x_axis_rotation},
+                flags: ArcFlags { large_arc: self.large_arc, sweep: self.sweep },
+             };
+
+        let mut f = |cb:&lyon::geom::CubicBezierSegment<f32>| {
+            builder.move_to(cb.from);
+            builder.cubic_bezier_to(cb.ctrl1, cb.ctrl2, cb.to);
+        }; 
+        svg.for_each_cubic_bezier(&mut f);
     }
+}
+
+impl Component for EllipticalArc {
+    type Storage = DenseVecStorage<Self>;
 }
 
 #[derive(Default, Debug, PartialEq, Clone)]
@@ -148,7 +253,7 @@ impl SVGPathPart for Close {
         o
      }
 
-     fn tessellate(&self, builder: &mut Builder) {
+     fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>) {
         builder.close();
      }
 }

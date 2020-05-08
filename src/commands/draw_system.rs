@@ -48,13 +48,13 @@ impl<'a, 'b> SystemDesc<'a, 'b, DrawSystem> for DrawSystemDesc {
     }
 }
 
-
 impl<'a> System<'a> for DrawSystem {
     type SystemData = (
         Read<'a, Draw>,
         ReadStorage<'a, MoveTo>,
         ReadStorage<'a, LineTo>,
         ReadStorage<'a, QuadraticBeizer>,
+        WriteStorage<'a, EllipticalArc>,
         ReadStorage<'a, Close>,
         WriteStorage<'a, Mesh>,
         Read<'a, Meshes>,
@@ -62,7 +62,7 @@ impl<'a> System<'a> for DrawSystem {
 
     fn run(
         &mut self, 
-        (draw, move_to, line_to, quad_beizer, close, mut mesh_storage, meshes): Self::SystemData) { 
+        (draw, move_to, line_to, quad_beizer, arc, close, mut mesh_storage, meshes): Self::SystemData) { 
         let fill_options = FillOptions::default();
         let mut geometry: VertexBuffers<VertexType, u16> = VertexBuffers::new();
         let mut tessellator_stroke = StrokeTessellator::new();
@@ -80,18 +80,23 @@ impl<'a> System<'a> for DrawSystem {
             for e in &draw.layers[layer].entities {
                 if let Some(entity) = e.entity {
                     if let Some(m_to) = move_to.get(entity) {
-                        m_to.tessellate(&mut builder);
+                        m_to.tessellate(
+                            &mut builder,
+                            &mut geometry);
                         //println!("{}", m_to.gen_output());
                     }
                     else if let Some(l_to) = line_to.get(entity) {
-                        l_to.tessellate(&mut builder);
+                        l_to.tessellate(&mut builder, &mut geometry);
                         //println!("{}", l_to.gen_output());
                     }
                     else if let Some(q_beizer) = quad_beizer.get(entity) {
-                        q_beizer.tessellate(&mut builder);
+                        q_beizer.tessellate(&mut builder, &mut geometry);
                     }
                     else if let Some(close) = close.get(entity) {
-                        close.tessellate(&mut builder);
+                        close.tessellate(&mut builder, &mut geometry);
+                    }
+                    else if let Some(arc) = arc.get(entity) {
+                        arc.tessellate(&mut builder, &mut geometry);
                     }
                 }
             }
@@ -143,13 +148,13 @@ impl<'a> System<'a> for DrawSystem {
             let mut builder = Path::builder();
             let parts = match action {
                 ActionBinding::StrokeLine => draw.hover_line(),
-                ActionBinding::StrokeArc =>  Vec::new(),
-                ActionBinding::StrokeArcRev => Vec::new(),
+                ActionBinding::StrokeArc =>  draw.hover_arc(false),
+                ActionBinding::StrokeArcRev => draw.hover_arc(true),
                 ActionBinding::StrokeBezier => draw.hover_cubic_beizer(),
                 _ => Vec::new()
             };
             for p in parts {
-                p.tessellate(&mut builder); 
+                p.tessellate(&mut builder, &mut geometry); 
             }
 
             let path = builder.build();

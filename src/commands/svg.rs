@@ -14,6 +14,10 @@ use amethyst::{
     prelude::*,
 };
 
+use amethyst_lyon::{
+    utils::{VertexType}
+};
+
 extern crate lyon;
 use lyon::math::{point, Point, Vector, vector, Scale};
 use lyon::path::{Builder};
@@ -90,7 +94,7 @@ impl Component for SVGEntity {
 
 pub trait SVGElement {
     fn gen_output(&self) -> String;
-    fn tessellate(&self, builder: &mut Builder);
+    fn tessellate(&self, builder: &mut Builder, geometry: &mut VertexBuffers<VertexType, u16>);
 }
 
 #[derive(Default, Debug)]
@@ -109,9 +113,9 @@ impl SVGElement for Path {
         finalize(o)
     }
 
-    fn tessellate(&self, builder: &mut Builder) {
+    fn tessellate(&self, builder: &mut Builder, geometry: &mut VertexBuffers<VertexType, u16>) {
         for e in &self.path {
-            e.tessellate(builder);
+            e.tessellate(builder, geometry);
         }
     }
 }

@@ -8,19 +8,16 @@
 use amethyst::{
     ecs::prelude::{Entities},
     core::ecs::{Component, DenseVecStorage, WriteStorage},
-    prelude::*,
 };
 
 use lyon::{ 
-    math::{point, Point, Vector, vector, Scale},
+    math::{point, Point},
     tessellation::{LineCap, LineJoin},
 };
 
 use crate::bindings::{ActionBinding}; 
 use crate::commands::svg::{SVGEntity};
 use crate::commands::svg_path::*;
-
-use log::info;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum HoverMode {
@@ -182,10 +179,12 @@ impl Draw {
         }
     }
 
+    /// add point to the set of points that (might) contrabute to a draw command
     pub fn add_point(&mut self, point: &Point) {
         self.points.push(*point);
     }
 
+    /// use current points to draw line(s)
     pub fn line<'a>(
         &mut self, 
         entities: &Entities<'a>, 
@@ -226,6 +225,85 @@ impl Draw {
         parts
     }
 
+    // generate a temorary line path for yet to be added points 
+    pub fn hover_arc<'a>(&self, sweep: bool) -> Vec<Box<dyn SVGPathPart>> {
+        let mut parts: Vec<Box<dyn SVGPathPart>> = Vec::new();
+        if self.points.len() >= 2 {
+            for i in 0..self.points.len()-1 {
+                parts.push(Box::new(MoveTo{ point: self.points[i] }));
+
+                let p1 = self.points[i];
+                let p2 = self.points[i+1];
+
+                let offset: Point = point((p2.x - p1.x).abs(), (p2.y - p1.y).abs());
+
+                if offset.x == 0. || offset.y == 0. {
+                    parts.push(Box::new(LineTo{ point: self.points[i+1] }));
+                }
+                else {
+                    parts.push(
+                        Box::new(
+                            EllipticalArc { 
+                                p1: p1,
+                                p2: p2,
+                                x_radius: offset.x,
+                                y_radius: offset.y,
+                                x_axis_rotation: 0.,
+                                large_arc: false,
+                                sweep: sweep, }));
+                }
+            }
+        }
+        parts
+    }
+
+    /// generate arc or arc rev
+    pub fn arc<'a>(
+        &mut self, 
+        sweep: bool,
+        entities: &Entities<'a>, 
+        move_to: &mut WriteStorage<'a, MoveTo>, 
+        line_to: &mut WriteStorage<'a, LineTo>,
+        arc: &mut WriteStorage<'a, EllipticalArc>) {
+       
+        if self.points.len() >= 2 {
+            for i in 0..self.points.len()-1 {
+                self.layers[self.active_layer].entities.push(
+                    SVGEntity::new(
+                        entities,
+                        MoveTo{ point: self.points[i] }, move_to));
+
+                let p1 = self.points[i];
+                let p2 = self.points[i+1];
+
+                let offset: Point = point((p2.x - p1.x).abs(), (p2.y - p1.y).abs());
+
+                if offset.x == 0. || offset.y == 0. {
+                    self.layers[self.active_layer].entities.push(
+                        SVGEntity::new(
+                            entities,
+                            LineTo{ point: self.points[i+1] }, line_to));
+                }
+                else {
+                    self.layers[self.active_layer].entities.push(
+                        SVGEntity::new(
+                            entities,
+                            EllipticalArc { 
+                                p1: p1,
+                                p2: p2,
+                                x_radius: offset.x,
+                                y_radius: offset.y,
+                                x_axis_rotation: 0.,
+                                large_arc: false,
+                                sweep: sweep, }, arc));
+                }                
+            }            
+            // clear all the consumed points
+            self.points.clear();
+        }
+    }
+
+    /// try and generate a quadric beizer from current points
     pub fn cubic_beizer<'a>(
         &mut self, 
         entities: &Entities<'a>, 

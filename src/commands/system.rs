@@ -43,12 +43,13 @@ use amethyst::{
          WriteStorage<'a, MoveTo>,
          WriteStorage<'a, LineTo>,
          WriteStorage<'a, QuadraticBeizer>,
+         WriteStorage<'a, EllipticalArc>,
          WriteStorage<'a, Close>
      );
   
      fn run(&mut self, 
         (commands, mut menu, mut draw, entities, 
-            mut move_to, mut line_to, mut quad_beizer, mut close): Self::SystemData) {
+            mut move_to, mut line_to, mut quad_beizer, mut arc, mut close): Self::SystemData) {
         // process any incoming commands
         for event in commands.read(&mut self.reader_id) {
             match event {
@@ -108,6 +109,14 @@ use amethyst::{
                 // draw line
                 Command::Input(ActionBinding::StrokeLine) => {
                     draw.line(&entities, &mut move_to, &mut line_to);
+                }
+                // draw arc
+                Command::Input(ActionBinding::StrokeArc) => {
+                    draw.arc(false, &entities, &mut move_to, &mut line_to, &mut arc);
+                }
+                // draw rev arc
+                Command::Input(ActionBinding::StrokeArcRev) => {
+                    draw.arc(true, &entities, &mut move_to, &mut line_to, &mut arc);
                 }
                 // close path
                 Command::Input(ActionBinding::StrokeClose) => {
