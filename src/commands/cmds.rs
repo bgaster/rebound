@@ -28,6 +28,12 @@ use crate::commands::{
     draw_utils::*,
 };
 
+//-----------------------------------------------------------------------------
+
+const DEFAULT_FILE_NAME: &str = "rebound.json";
+
+//-----------------------------------------------------------------------------
+
 
 /// Hover mouse over ICON modes
 #[derive(Clone, Debug, PartialEq)]
@@ -418,7 +424,7 @@ impl Draw {
         close: &WriteStorage<'a, Close>) {
         
         // pop up save dialog 
-        match tinyfiledialogs::save_file_dialog("Save", "graphic.json") {
+        match tinyfiledialogs::save_file_dialog("Save", DEFAULT_FILE_NAME) {
             Some(file) => {
                 let rebound_file = self.to_file(dimensions, entities, move_to, line_to, quad_beizer, arc, close);
                 fs::write(file, rebound_file.to_json()).expect("Unable to write file");
