@@ -54,7 +54,7 @@ impl<'a> System<'a> for DrawSystem {
         ReadStorage<'a, MoveTo>,
         ReadStorage<'a, LineTo>,
         ReadStorage<'a, QuadraticBeizer>,
-        WriteStorage<'a, EllipticalArc>,
+        ReadStorage<'a, EllipticalArc>,
         ReadStorage<'a, Close>,
         WriteStorage<'a, Mesh>,
         Read<'a, Meshes>,
@@ -148,8 +148,8 @@ impl<'a> System<'a> for DrawSystem {
             let mut builder = Path::builder();
             let parts = match action {
                 ActionBinding::StrokeLine => draw.hover_line(),
-                ActionBinding::StrokeArc =>  draw.hover_arc(false),
-                ActionBinding::StrokeArcRev => draw.hover_arc(true),
+                ActionBinding::StrokeArc =>  draw.hover_arc(true),
+                ActionBinding::StrokeArcRev => draw.hover_arc(false),
                 ActionBinding::StrokeBezier => draw.hover_cubic_beizer(),
                 _ => Vec::new()
             };

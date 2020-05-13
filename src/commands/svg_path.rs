@@ -28,6 +28,8 @@ pub trait SVGPathPart : std::fmt::Debug {
     fn tessellate(&self, 
         builder: &mut Builder,
         geometry: &mut VertexBuffers<VertexType, u16>);
+    fn vertices(&self) -> Vec<Vertex>;
+    fn name(&self) -> String;
 }
 
 #[derive(Default, Debug, PartialEq, Clone)]
@@ -36,15 +38,23 @@ pub struct MoveTo {
 }
 
 impl SVGPathPart for MoveTo {
-     fn gen_output(&self) -> String {
+    fn gen_output(&self) -> String {
         let mut o = String::new();
         o.push_str(&format!("M{:?},{:?}", self.point.x, self.point.y)[..]);
         o
-     }
+    }
 
-     fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>) {
+    fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>) {
         builder.move_to(self.point);
-     }
+    }
+
+    fn vertices(&self) -> Vec<Vertex> {
+        vec![Vertex::from(self.point)]
+    }
+
+    fn name(&self) -> String {
+        "move_to".to_string()
+    }
 }
 
 impl Component for MoveTo {
@@ -65,6 +75,14 @@ impl SVGPathPart for LineTo {
 
     fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>) {
          builder.line_to(self.point);
+    }
+
+    fn vertices(&self) -> Vec<Vertex> {
+        vec![Vertex::from(self.point)]
+    }
+
+    fn name(&self) -> String {
+        "line_to".to_string()
     }
 }
 
@@ -133,7 +151,14 @@ impl SVGPathPart for CubicBeizer {
                 }
             }),
         ).unwrap();
+    }
 
+    fn vertices(&self) -> Vec<Vertex> {
+        vec![Vertex::from(self.point_n), Vertex::from(self.point_cs), Vertex::from(self.point_es)]
+    }
+
+    fn name(&self) -> String {
+        "cubic_beizer".to_string()
     }
 }
 
@@ -182,6 +207,14 @@ impl SVGPathPart for QuadraticBeizer {
             }),
         ).unwrap();
     }
+
+    fn vertices(&self) -> Vec<Vertex> {
+        vec![Vertex::from(self.point_c), Vertex::from(self.point_n)]
+    }
+
+    fn name(&self) -> String {
+        "quadratic_beizer".to_string()
+    }
 }
 
 impl Component for QuadraticBeizer {
@@ -198,15 +231,6 @@ pub struct EllipticalArc {
     pub large_arc: bool,
     pub sweep: bool,
 }
-
-
-// fn arc(
-//     &mut self, 
-//     center: TypedPoint2D<f32, UnknownUnit>, 
-//     radii: TypedVector2D<f32, UnknownUnit>, 
-//     sweep_angle: Angle<f32>, 
-//     x_rotation: Angle<f32>
-// )
 
 impl SVGPathPart for EllipticalArc {
     fn gen_output(&self) -> String {
@@ -236,6 +260,19 @@ impl SVGPathPart for EllipticalArc {
         }; 
         svg.for_each_cubic_bezier(&mut f);
     }
+
+    fn vertices(&self) -> Vec<Vertex> {
+        vec![
+            Vertex::from(self.p1), 
+            Vertex::from(self.p2), 
+            Vertex { x: self.x_radius, y: self.y_radius }, 
+            Vertex { x: self.x_axis_rotation, y: 0.0 },
+            Vertex { x: if self.large_arc { 1.0 } else { 0.0 }, y: if self.sweep { 1.0 } else { 0.0 } }]
+    }
+
+    fn name(&self) -> String {
+        "arc".to_string()
+    }
 }
 
 impl Component for EllipticalArc {
@@ -247,15 +284,23 @@ pub struct Close {
 }
 
 impl SVGPathPart for Close {
-     fn gen_output(&self) -> String {
+    fn gen_output(&self) -> String {
         let mut o = String::new();
         o.push_str(&format!("Z ",)[..]);
         o
-     }
+    }
 
-     fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>) {
+    fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>) {
         builder.close();
-     }
+    }
+
+    fn vertices(&self) -> Vec<Vertex> {
+        Vec::new()
+    }
+
+    fn name(&self) -> String {
+        "close".to_string()
+    }
 }
 
 impl Component for Close {

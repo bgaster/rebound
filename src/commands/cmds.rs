@@ -5,6 +5,8 @@
 //! Copyright © 2020 Benedict Gaster. All rights reserved.
 //! 
 
+use std::fs;
+
 use amethyst::{
     ecs::prelude::{Entities},
     core::ecs::{Component, DenseVecStorage, WriteStorage},
@@ -15,22 +17,35 @@ use lyon::{
     tessellation::{LineCap, LineJoin},
 };
 
-use crate::bindings::{ActionBinding}; 
-use crate::commands::svg::{SVGEntity};
-use crate::commands::svg_path::*;
+extern crate tinyfiledialogs;
+use tinyfiledialogs::{YesNo, MessageBoxIcon, DefaultColorValue};
 
+
+use crate::bindings::{ActionBinding}; 
+use crate::commands::{
+    svg::{SVGEntity},
+    svg_path::*,
+    draw_utils::*,
+};
+
+
+/// Hover mouse over ICON modes
 #[derive(Clone, Debug, PartialEq)]
 pub enum HoverMode {
     Start,
     End,
 }
 
+/// Commands sent/generated to draw (command) system from IO interaction
 #[derive(Clone, Debug, PartialEq)]
 pub enum Command {
+    /// keyboard/mouse input actions (this include draw actions)
     Input(ActionBinding),
+    /// mouse hover mode, for certain action ICONs
     Hover(HoverMode, ActionBinding),
-    //Hover(HoverMode, ActionBinding),
+    /// Set draw colour for current layer
     DrawColour([f32;4]),
+    /// Add a control point to set of possible points to use in next draw action
     AddControlPoint(Point),
 }   
 
@@ -39,6 +54,7 @@ pub const LAYER_MIDDLEGROUND: usize = 1;
 pub const LAYER_BACKGROUND: usize = 2;
 pub const NUMBER_LAYERS: usize = 3;
 
+/// Data for each independent layer
 #[derive(Clone, Debug)]
 pub struct Layer {
     pub entities: Vec<SVGEntity>,
@@ -49,6 +65,7 @@ pub struct Layer {
     pub fill: bool,
 }
 
+/// default instance for a layer
 impl Default for Layer {
     fn default() -> Self {
         Self {
@@ -62,15 +79,20 @@ impl Default for Layer {
     }
 }
 
+/// Data for overall drawing
 #[derive(Clone, Debug)]
 pub struct Draw {
-    /// layers
+    /// current active layer
     pub active_layer: usize,
+    /// points that have been added but not turned into a command
     pub points: Vec<Point>,
+    /// data for each layer
     pub layers: [Layer; NUMBER_LAYERS],
+    /// is mouse currently hovering an action ICON, if so which one 
     pub hover: Option<ActionBinding>,
 }
 
+/// default instance of draw data
 impl Default for Draw {
     fn default() -> Self {
         Self {
@@ -83,6 +105,7 @@ impl Default for Draw {
 }
 
 impl Draw {
+    /// create new instance of draw
     pub fn new() -> Self {
         Self::default()
     }
@@ -109,6 +132,31 @@ impl Draw {
         }
         else {
             false
+        }
+    }
+
+    /// merge layers into the current layer, adopting active layer colour
+    pub fn merge_layers(&mut self) {
+        
+        let mut tmp: Vec<SVGEntity> = Vec::new();
+        for e in self.layers[LAYER_FOREGROUND].entities.iter() {
+            tmp.push(e.clone());
+        }
+        self.layers[LAYER_FOREGROUND].entities.clear();
+
+        for e in self.layers[LAYER_MIDDLEGROUND].entities.iter() {
+            tmp.push(e.clone());
+        }
+        self.layers[LAYER_MIDDLEGROUND].entities.clear();
+
+        for e in self.layers[LAYER_BACKGROUND].entities.iter() {
+            tmp.push(e.clone());
+        }
+        self.layers[LAYER_BACKGROUND].entities.clear();
+
+        // finally push them all on to the active layer
+        for e in tmp.iter() {
+            self.layers[self.active_layer].entities.push(e.clone());
         }
     }
 
@@ -333,6 +381,7 @@ impl Draw {
         }
     }
 
+    // generate a temorary beizer for yet to be added points 
     pub fn hover_cubic_beizer<'a> (&self) -> Vec<Box<dyn SVGPathPart>> {
         let mut parts: Vec<Box<dyn SVGPathPart>> = Vec::new();
         let num_points = self.points.len();
@@ -356,6 +405,84 @@ impl Draw {
                 SVGEntity::new(
                     entities,
                     Close { }, close));
+    }
+
+    pub fn save<'a> (
+        &self,
+        dimensions: (u32,u32),
+        entities: &Entities<'a>,
+        move_to: &WriteStorage<'a, MoveTo>,
+        line_to: &WriteStorage<'a, LineTo>,
+        quad_beizer: &WriteStorage<'a, QuadraticBeizer>,
+        arc: &WriteStorage<'a, EllipticalArc>,
+        close: &WriteStorage<'a, Close>) {
+        
+        // pop up save dialog 
+        match tinyfiledialogs::save_file_dialog("Save", "graphic.json") {
+            Some(file) => {
+                let rebound_file = self.to_file(dimensions, entities, move_to, line_to, quad_beizer, arc, close);
+                fs::write(file, rebound_file.to_json()).expect("Unable to write file");
+            },
+            None => {},
+        }
+    }
+
+    fn to_file<'a>(
+        &self,
+        dimensions: (u32,u32),
+        entities: &Entities<'a>,
+        move_to: &WriteStorage<'a, MoveTo>,
+        line_to: &WriteStorage<'a, LineTo>,
+        quad_beizer: &WriteStorage<'a, QuadraticBeizer>,
+        arc: &WriteStorage<'a, EllipticalArc>,
+        close: &WriteStorage<'a, Close>) -> ReboundFile {
+            let mut rebound_file = ReboundFile {
+                settings: Size { width: dimensions.0, height: dimensions.1},
+                layers: Vec::new(),
+                styles: Vec::new(),
+            };
+
+            for layer in 0..NUMBER_LAYERS {
+                let mut layer_value: Vec<SVGType> = Vec::new();
+                for e in &self.layers[layer].entities {
+                    if let Some(entity) = e.entity {
+                        if let Some(m_to) = move_to.get(entity) {
+                            layer_value.push(SVGType {
+                                command: m_to.name(),
+                                vertices: m_to.vertices(),
+                            });
+                        }
+                        else if let Some(l_to) = line_to.get(entity) {
+                            layer_value.push(SVGType {
+                                command: l_to.name(),
+                                vertices: l_to.vertices(),
+                            });
+                        }
+                        else if let Some(q_beizer) = quad_beizer.get(entity) {
+                            layer_value.push(SVGType {
+                                command: q_beizer.name(),
+                                vertices: q_beizer.vertices(),
+                            });
+                        }
+                        else if let Some(close) = close.get(entity) {
+                            layer_value.push(SVGType {
+                                command: close.name(),
+                                vertices: close.vertices(),
+                            });
+                        }
+                        else if let Some(arc) = arc.get(entity) {
+                            layer_value.push(SVGType {
+                                command: arc.name(),
+                                vertices: arc.vertices(),
+                            });
+                        }
+                    }
+                }
+                rebound_file.layers.push(layer_value);
+            }
+
+            //println!("{:?}", rebound_file.to_json());
+            rebound_file
     }
 }
 

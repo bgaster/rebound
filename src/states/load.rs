@@ -80,6 +80,8 @@ impl SimpleState for LoadState {
     fn update(&mut self, state_data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
         let StateData { world, .. } = state_data;
 
+        let dimensions = (*world.read_resource::<ScreenDimensions>()).clone();
+
         // assets loaded?
         if self.progress_counter.is_complete() {
             // create main menu...
@@ -87,6 +89,7 @@ impl SimpleState for LoadState {
                 root: self.root,
                 mesh: self.menu_mesh,
                 dpi: self.dpi,
+                dimensions: (dimensions.width() as u32, dimensions.height() as u32),
                 ..MainUI::default()
             };
 

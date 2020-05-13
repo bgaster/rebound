@@ -15,7 +15,7 @@ use amethyst::{
 
 use crate::{
    ui::mainui::{MainUI},  
-   bindings::{InputBindingTypes},
+   bindings::{InputBindingTypes, ActionBinding},
    commands::{Command, Draw, HoverMode},
 };
 
@@ -49,7 +49,6 @@ impl<'a> System<'a> for RUIEventHandlerSystem {
        Read<'a, EventChannel<InputEvent<InputBindingTypes>>>,
        ReadStorage<'a, UiText>,
        Write<'a, MainUI>,
-       Write<'a, Draw>,
        WriteStorage<'a, Mesh>,
        Write<'a, EventChannel<Command>>,
        Read<'a, InputHandler<InputBindingTypes>>,
@@ -57,7 +56,7 @@ impl<'a> System<'a> for RUIEventHandlerSystem {
 
    fn run(
       &mut self, 
-      (ui_events, input_events, ui_text, mut menu, mut draw, mesh_storage, mut commands, input): Self::SystemData) {
+      (ui_events, input_events, ui_text, mut menu, mesh_storage, mut commands, input): Self::SystemData) {
       
       // update UI to know the current mouse position
       if let Some(mouse_position) = input.mouse_position() {
@@ -70,7 +69,8 @@ impl<'a> System<'a> for RUIEventHandlerSystem {
       // let mut up          = false;
       // let mut down        = false;
 
-      // // collect keyboard inputs...
+      // collect keyboard inputs...
+   
       // for ev in input_events.read(&mut self.input_event_rid) {
       //    match *ev {
       //       InputEvent::ActionPressed(ActionBinding::IFScrollUp) => {
@@ -90,11 +90,16 @@ impl<'a> System<'a> for RUIEventHandlerSystem {
       // }
      
       for ev in input_events.read(&mut self.input_event_rid) {
-         match *ev {
+         match (*ev).clone() {
             InputEvent::MouseButtonPressed(Left) => {
                // process grid clicks, e.g. setting active points
                if !menu.submenu_active {
                   menu.grid_click(&mut commands);
+               }
+            }
+            InputEvent::ActionPressed(action) => {
+               if !menu.colour_input_focused {
+                  commands.single_write(Command::Input(action));
                }
             }
             _ => {
@@ -118,11 +123,18 @@ impl<'a> System<'a> for RUIEventHandlerSystem {
          }
          if ev.event_type == UiEventType::Click {
             // handle menu ICON click events
-            menu.click(Some(ev.target), &mut commands); 
+            menu.click(Some(ev.target), &mut commands);
+            // we have to defocus colour text input to allow keyboard messages to be sent to sub-system again
+            menu.colour_focus(Some(ev.target));
          }
          // handle colour input UI events
          if ev.event_type == UiEventType::ValueCommit {
             menu.colour_input(Some(ev.target), &ui_text, &mut commands);
+         }
+         // are we focused in the colour 'text' box? need to account for this other wise UI messages are sent
+         // through to draw system, when they should not be!
+         if ev.event_type ==  UiEventType::Focus {
+            menu.colour_focus(Some(ev.target));
          }
       }
 

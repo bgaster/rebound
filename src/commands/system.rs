@@ -6,8 +6,9 @@
 
 use amethyst::{
      derive::SystemDesc,
-     ecs::{Read, Write, System, SystemData, Entities, WriteStorage},
+     ecs::{Read, Write, System, SystemData, Entities, WriteStorage, ReadStorage},
      shrev::{EventChannel, ReaderId},
+     window::{ScreenDimensions},
   };
   
   use crate::{
@@ -48,7 +49,7 @@ use amethyst::{
      );
   
      fn run(&mut self, 
-        (commands, mut menu, mut draw, entities, 
+        (commands, mut menu, mut draw, entities,
             mut move_to, mut line_to, mut quad_beizer, mut arc, mut close): Self::SystemData) {
         // process any incoming commands
         for event in commands.read(&mut self.reader_id) {
@@ -112,11 +113,11 @@ use amethyst::{
                 }
                 // draw arc
                 Command::Input(ActionBinding::StrokeArc) => {
-                    draw.arc(false, &entities, &mut move_to, &mut line_to, &mut arc);
+                    draw.arc(true, &entities, &mut move_to, &mut line_to, &mut arc);
                 }
                 // draw rev arc
                 Command::Input(ActionBinding::StrokeArcRev) => {
-                    draw.arc(true, &entities, &mut move_to, &mut line_to, &mut arc);
+                    draw.arc(false, &entities, &mut move_to, &mut line_to, &mut arc);
                 }
                 // close path
                 Command::Input(ActionBinding::StrokeClose) => {
@@ -133,6 +134,14 @@ use amethyst::{
                 // hover action end
                 Command::Hover(HoverMode::End, _) => {
                     draw.hover_end();
+                }
+                // merge layers into active layer
+                Command::Input(ActionBinding::LayersMergeLayers) => {
+                    draw.merge_layers();
+                }
+                // merge layers into active layer
+                Command::Input(ActionBinding::FileSave) => {
+                    draw.save(menu.dimensions(), &entities, &move_to, &line_to, &quad_beizer, &arc, &close);
                 }
                 _ => {
                     info!("{:?}", event);

@@ -108,8 +108,9 @@ pub struct MainUI {
     pub fill_icon: Option<Entity>,
     /// Icon currently being hovered over (if any)
     pub hover: Option<Entity>,
-    /// Entity for fill icon (button)
+    /// Entity for colour text entry box
     pub colour_input: Option<Entity>,
+    pub colour_input_focused: bool,
     /// is grid displayed
     pub display_grid: bool,
     /// is tools displayed
@@ -118,6 +119,9 @@ pub struct MainUI {
     pub dpi: f64,
     /// current draw colour, displayed in UI
     pub draw_colour: [f32;4],
+
+    /// window dimensions
+    pub dimensions: (u32,u32),
 }
 
 impl Default for MainUI {
@@ -146,11 +150,13 @@ impl Default for MainUI {
             fill_icon: None,
             hover: None,
             colour_input: None,
+            colour_input_focused: false,
             display_grid: true,
             display_tools: true,
             mouse_position: (0.,0.),
             dpi: 0.,
             draw_colour: [0.0,0.0,0.0,1.0],
+            dimensions: (0,0),
         }
     }
 }
@@ -186,6 +192,11 @@ impl MainUI {
         self.mouse_position = (x as f32, y as f32);
     }
 
+    /// window dimensions 
+    pub fn dimensions(&self) -> (u32,u32) {
+        self.dimensions
+    }
+    
     /// set current dpi
     pub fn _set_dpi(&mut self, dpi: f64) {
         self.dpi = dpi;
@@ -194,6 +205,11 @@ impl MainUI {
     /// set entity currently being hovered over, which might be none
     pub fn hover(&mut self, entity: Option<Entity>) {
         self.hover = entity;
+    }
+
+    /// set entity currently being hovered over, which might be none
+    pub fn colour_focus(&mut self, entity: Option<Entity>) {
+        self.colour_input_focused = self.colour_input == entity;
     }
 
     /// toggle grid display
@@ -492,7 +508,9 @@ impl MainUI {
     pub fn grid_click<'a>(&mut self, commands: &mut Write<'a,  EventChannel::<Command>>) {
         // check event within grid
         if self.in_grid() {
-            commands.single_write(Command::AddControlPoint(point(self.mouse_position.0, self.mouse_position.1)));       
+            commands.single_write(Command::AddControlPoint(point(self.mouse_position.0, self.mouse_position.1))); 
+            // TODO: the following is a bit of a hack and could be better! 
+            self.colour_input_focused = false;     
         }
     }
 

@@ -1,3 +1,8 @@
+use serde::{Deserialize, Serialize};
+use serde_json::Result;
+
+use std::convert::From;
+
 extern crate lyon;
 use lyon::math::{point, Point, Vector, vector, Scale};
 use lyon::path::{Builder};
@@ -28,4 +33,62 @@ pub fn circle(builder: &mut Builder) {
     builder.cubic_bezier_to(p26, p27, p28);
     builder.cubic_bezier_to(p29, p30, p31);
     builder.close();
+}
+
+//-----------------------------------------------------------------------------
+// Simple data structure to serailize between JSON and Draw representation
+//-----------------------------------------------------------------------------
+
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Size {
+    pub width: u32,
+    pub height: u32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Vertex {
+    pub x: f32,
+    pub y: f32,
+}
+
+impl From<Point> for Vertex {
+    fn from(point: Point) -> Self {
+        Vertex { x: point.x, y: point.y }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SVGType {
+    #[serde(rename = "type")]
+    pub command: String,
+    pub vertices: Vec<Vertex>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Style {
+    thickness: u32,
+    strokeLinecap: String,
+    strokeLinejoin: String,
+    color: String,
+    fill: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ReboundFile {
+    pub settings: Size,
+    pub layers: Vec<Vec<SVGType>>,
+    pub styles: Vec<Style>,
+}
+
+impl ReboundFile {
+    pub fn from_json(data: String) -> Self {
+        //TODO: don't just panic
+        serde_json::from_str(&data[..]).unwrap()
+    }
+
+    pub fn to_json(&self) -> String {
+        //TODO: add actual error checking
+        serde_json::to_string(self).unwrap()
+    }
 }
