@@ -67,11 +67,13 @@ pub struct SVGType {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Style {
-    thickness: u32,
-    strokeLinecap: String,
-    strokeLinejoin: String,
-    color: String,
-    fill: String,
+    pub thickness: f32,
+    #[serde(rename = "linecap")]
+    pub linecap: String,
+    #[serde(rename = "linejoin")]
+    pub linejoin: String,
+    pub colour: [f32;4],
+    pub fill: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

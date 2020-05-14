@@ -105,7 +105,7 @@ use amethyst::{
                 }
                 // draw beizer
                 Command::Input(ActionBinding::StrokeBezier) => {
-                    draw.cubic_beizer(&entities, &mut move_to, &mut quad_beizer);
+                    draw.quad_beizer(&entities, &mut move_to, &mut quad_beizer);
                 }
                 // draw line
                 Command::Input(ActionBinding::StrokeLine) => {
@@ -139,9 +139,13 @@ use amethyst::{
                 Command::Input(ActionBinding::LayersMergeLayers) => {
                     draw.merge_layers();
                 }
-                // merge layers into active layer
+                // file save
                 Command::Input(ActionBinding::FileSave) => {
-                    draw.save(menu.dimensions(), &entities, &move_to, &line_to, &quad_beizer, &arc, &close);
+                    draw.save(menu.dimensions(), &move_to, &line_to, &quad_beizer, &arc, &close);
+                }
+                // file open
+                Command::Input(ActionBinding::FileOpen) => {
+                    draw.load(&entities, &mut move_to, &mut line_to, &mut quad_beizer, &mut arc, &mut close);
                 }
                 _ => {
                     info!("{:?}", event);

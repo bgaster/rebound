@@ -358,7 +358,7 @@ impl Draw {
     }
 
     /// try and generate a quadric beizer from current points
-    pub fn cubic_beizer<'a>(
+    pub fn quad_beizer<'a>(
         &mut self, 
         entities: &Entities<'a>, 
         move_to: &mut WriteStorage<'a, MoveTo>, 
@@ -413,10 +413,10 @@ impl Draw {
                     Close { }, close));
     }
 
+    /// save to JSON
     pub fn save<'a> (
         &self,
         dimensions: (u32,u32),
-        entities: &Entities<'a>,
         move_to: &WriteStorage<'a, MoveTo>,
         line_to: &WriteStorage<'a, LineTo>,
         quad_beizer: &WriteStorage<'a, QuadraticBeizer>,
@@ -426,17 +426,17 @@ impl Draw {
         // pop up save dialog 
         match tinyfiledialogs::save_file_dialog("Save", DEFAULT_FILE_NAME) {
             Some(file) => {
-                let rebound_file = self.to_file(dimensions, entities, move_to, line_to, quad_beizer, arc, close);
+                let rebound_file = self.to_file(dimensions, move_to, line_to, quad_beizer, arc, close);
                 fs::write(file, rebound_file.to_json()).expect("Unable to write file");
             },
             None => {},
         }
     }
 
+    /// convert to internal file format
     fn to_file<'a>(
         &self,
         dimensions: (u32,u32),
-        entities: &Entities<'a>,
         move_to: &WriteStorage<'a, MoveTo>,
         line_to: &WriteStorage<'a, LineTo>,
         quad_beizer: &WriteStorage<'a, QuadraticBeizer>,
@@ -449,36 +449,45 @@ impl Draw {
             };
 
             for layer in 0..NUMBER_LAYERS {
+                // create style
+                rebound_file.styles.push(Style {
+                    thickness: self.layers[layer].thickness,
+                    linecap: format!("{:?}", self.layers[layer].linecap),
+                    linejoin: format!("{:?}", self.layers[layer].linejoin),
+                    colour: self.layers[layer].colour,
+                    fill: if self.layers[layer].fill { "fill".to_string() } else { "nofill".to_string() },
+                });
+
                 let mut layer_value: Vec<SVGType> = Vec::new();
                 for e in &self.layers[layer].entities {
                     if let Some(entity) = e.entity {
                         if let Some(m_to) = move_to.get(entity) {
                             layer_value.push(SVGType {
-                                command: m_to.name(),
+                                command: MOVETO_NAME.to_string(),
                                 vertices: m_to.vertices(),
                             });
                         }
                         else if let Some(l_to) = line_to.get(entity) {
                             layer_value.push(SVGType {
-                                command: l_to.name(),
+                                command: LINETO_NAME.to_string(),
                                 vertices: l_to.vertices(),
                             });
                         }
                         else if let Some(q_beizer) = quad_beizer.get(entity) {
                             layer_value.push(SVGType {
-                                command: q_beizer.name(),
+                                command: QUADRATIC_BEIZER_NAME.to_string(),
                                 vertices: q_beizer.vertices(),
                             });
                         }
                         else if let Some(close) = close.get(entity) {
                             layer_value.push(SVGType {
-                                command: close.name(),
+                                command: CLOSE_NAME.to_string(),
                                 vertices: close.vertices(),
                             });
                         }
                         else if let Some(arc) = arc.get(entity) {
                             layer_value.push(SVGType {
-                                command: arc.name(),
+                                command: ELLIPTICAL_ARC_NAME.to_string(),
                                 vertices: arc.vertices(),
                             });
                         }
@@ -486,9 +495,74 @@ impl Draw {
                 }
                 rebound_file.layers.push(layer_value);
             }
-
-            //println!("{:?}", rebound_file.to_json());
             rebound_file
+    }
+
+    // load from JSON
+    pub fn load<'a> (
+        &mut self,
+        entities: &Entities<'a>,
+        move_to: &mut WriteStorage<'a, MoveTo>,
+        line_to: &mut WriteStorage<'a, LineTo>,
+        quad_beizer: &mut WriteStorage<'a, QuadraticBeizer>,
+        arc: &mut WriteStorage<'a, EllipticalArc>,
+        close: &mut WriteStorage<'a, Close>) {
+        
+        // pop up save dialog 
+        match tinyfiledialogs::open_file_dialog("Open", DEFAULT_FILE_NAME, None) {
+            Some(file) => {
+                // TODO: remove panic!
+                let rebound = ReboundFile::from_json(fs::read_to_string(file).expect("Unable to read file"));
+                for layer in 0..NUMBER_LAYERS {
+                    self.active_layer = layer;
+                    // handle types
+                    for svgt in &rebound.layers[layer] {
+                        match &svgt.command[..] {
+                            MOVETO_NAME => {
+                                self.add_point(&point(svgt.vertices[0].x, svgt.vertices[0].y));
+                            },
+                            LINETO_NAME => {
+                                self.add_point(&point(svgt.vertices[0].x, svgt.vertices[0].y));
+                                self.line(entities, move_to, line_to);
+                            },
+                            QUADRATIC_BEIZER_NAME => {
+                                self.add_point(&point(svgt.vertices[0].x, svgt.vertices[0].y));
+                                self.add_point(&point(svgt.vertices[1].x, svgt.vertices[1].y));
+                                self.quad_beizer(entities, move_to, quad_beizer);
+                            },
+                            CUBIC_BEIZER_NAME => {
+                                // not generated at the moment
+                            },
+                            ELLIPTICAL_ARC_NAME => {
+                                self.add_point(&point(svgt.vertices[0].x, svgt.vertices[0].y));
+                                self.add_point(&point(svgt.vertices[1].x, svgt.vertices[1].y));
+                                self.arc(svgt.vertices[4].y == 1.0, entities, move_to, line_to, arc);
+                            },
+                            CLOSE_NAME => { 
+                                self.close(entities, close);
+                            },
+                            _ => {},
+                        }
+                    }
+
+                    // handle style
+                    self.layers[layer].thickness = rebound.styles[layer].thickness;
+                    self.layers[layer].linecap = if rebound.styles[layer].linecap == "Butt" { LineCap::Butt } 
+                                                 else if rebound.styles[layer].linecap == "Round" { LineCap::Round } 
+                                                 else { LineCap::Square };
+                    self.layers[layer].linejoin = match &rebound.styles[layer].linejoin[..] {
+                        "Miter" => LineJoin::Miter,
+                        "Bevel" => LineJoin::Bevel,
+                        "MiterClip" => LineJoin::MiterClip,
+                        _ => LineJoin::Round,
+                    };
+                    self.layers[layer].colour = rebound.styles[layer].colour;
+                    self.layers[layer].fill = rebound.styles[layer].fill == "fill";
+                }
+                self.active_layer = LAYER_FOREGROUND;
+            },
+            None => {},
+        }
     }
 }
 

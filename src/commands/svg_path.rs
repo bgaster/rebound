@@ -23,13 +23,19 @@ use lyon::path::{Path, Builder};
 use lyon::geom::{Arc, SvgArc, arc::ArcFlags};
 use lyon::tessellation::*;
 
+pub const MOVETO_NAME: &str = "move_to";
+pub const LINETO_NAME: &str = "line_to";
+pub const CUBIC_BEIZER_NAME: &str = "cubic_beizer";
+pub const QUADRATIC_BEIZER_NAME: &str = "quadratic_beizer";
+pub const ELLIPTICAL_ARC_NAME: &str = "arc";
+pub const CLOSE_NAME: &str = "close";
+
 pub trait SVGPathPart : std::fmt::Debug {
     fn gen_output(&self) -> String;
     fn tessellate(&self, 
         builder: &mut Builder,
         geometry: &mut VertexBuffers<VertexType, u16>);
     fn vertices(&self) -> Vec<Vertex>;
-    fn name(&self) -> String;
 }
 
 #[derive(Default, Debug, PartialEq, Clone)]
@@ -50,10 +56,6 @@ impl SVGPathPart for MoveTo {
 
     fn vertices(&self) -> Vec<Vertex> {
         vec![Vertex::from(self.point)]
-    }
-
-    fn name(&self) -> String {
-        "move_to".to_string()
     }
 }
 
@@ -79,10 +81,6 @@ impl SVGPathPart for LineTo {
 
     fn vertices(&self) -> Vec<Vertex> {
         vec![Vertex::from(self.point)]
-    }
-
-    fn name(&self) -> String {
-        "line_to".to_string()
     }
 }
 
@@ -156,10 +154,6 @@ impl SVGPathPart for CubicBeizer {
     fn vertices(&self) -> Vec<Vertex> {
         vec![Vertex::from(self.point_n), Vertex::from(self.point_cs), Vertex::from(self.point_es)]
     }
-
-    fn name(&self) -> String {
-        "cubic_beizer".to_string()
-    }
 }
 
 impl Component for CubicBeizer {
@@ -210,10 +204,6 @@ impl SVGPathPart for QuadraticBeizer {
 
     fn vertices(&self) -> Vec<Vertex> {
         vec![Vertex::from(self.point_c), Vertex::from(self.point_n)]
-    }
-
-    fn name(&self) -> String {
-        "quadratic_beizer".to_string()
     }
 }
 
@@ -269,10 +259,6 @@ impl SVGPathPart for EllipticalArc {
             Vertex { x: self.x_axis_rotation, y: 0.0 },
             Vertex { x: if self.large_arc { 1.0 } else { 0.0 }, y: if self.sweep { 1.0 } else { 0.0 } }]
     }
-
-    fn name(&self) -> String {
-        "arc".to_string()
-    }
 }
 
 impl Component for EllipticalArc {
@@ -296,11 +282,7 @@ impl SVGPathPart for Close {
 
     fn vertices(&self) -> Vec<Vertex> {
         Vec::new()
-    }
-
-    fn name(&self) -> String {
-        "close".to_string()
-    }
+    }   
 }
 
 impl Component for Close {
