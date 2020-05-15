@@ -94,7 +94,7 @@ impl Component for SVGEntity {
 
 pub trait SVGElement {
     fn gen_output(&self) -> String;
-    fn tessellate(&self, builder: &mut Builder, geometry: &mut VertexBuffers<VertexType, u16>);
+    fn tessellate(&self, builder: &mut Builder, geometry: &mut VertexBuffers<VertexType, u16>, active_layer: bool);
 }
 
 #[derive(Default, Debug)]
@@ -113,9 +113,9 @@ impl SVGElement for Path {
         finalize(o)
     }
 
-    fn tessellate(&self, builder: &mut Builder, geometry: &mut VertexBuffers<VertexType, u16>) {
+    fn tessellate(&self, builder: &mut Builder, geometry: &mut VertexBuffers<VertexType, u16>, active_layer: bool) {
         for e in &self.path {
-            e.tessellate(builder, geometry);
+            e.tessellate(builder, geometry, active_layer);
         }
     }
 }

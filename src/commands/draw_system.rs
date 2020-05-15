@@ -77,26 +77,25 @@ impl<'a> System<'a> for DrawSystem {
 
             let mut builder = Path::builder();
 
+            let active_layer = draw.active_layer == layer;
             for e in &draw.layers[layer].entities {
                 if let Some(entity) = e.entity {
                     if let Some(m_to) = move_to.get(entity) {
-                        m_to.tessellate(
-                            &mut builder,
-                            &mut geometry);
+                        m_to.tessellate(&mut builder, &mut geometry, active_layer);
                         //println!("{}", m_to.gen_output());
                     }
                     else if let Some(l_to) = line_to.get(entity) {
-                        l_to.tessellate(&mut builder, &mut geometry);
+                        l_to.tessellate(&mut builder, &mut geometry, active_layer);
                         //println!("{}", l_to.gen_output());
                     }
                     else if let Some(q_beizer) = quad_beizer.get(entity) {
-                        q_beizer.tessellate(&mut builder, &mut geometry);
+                        q_beizer.tessellate(&mut builder, &mut geometry, active_layer);
                     }
                     else if let Some(close) = close.get(entity) {
-                        close.tessellate(&mut builder, &mut geometry);
+                        close.tessellate(&mut builder, &mut geometry, active_layer);
                     }
                     else if let Some(arc) = arc.get(entity) {
-                        arc.tessellate(&mut builder, &mut geometry);
+                        arc.tessellate(&mut builder, &mut geometry, active_layer);
                     }
                 }
             }
@@ -154,7 +153,7 @@ impl<'a> System<'a> for DrawSystem {
                 _ => Vec::new()
             };
             for p in parts {
-                p.tessellate(&mut builder, &mut geometry); 
+                p.tessellate(&mut builder, &mut geometry, true); 
             }
 
             let path = builder.build();

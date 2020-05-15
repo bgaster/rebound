@@ -34,7 +34,8 @@ pub trait SVGPathPart : std::fmt::Debug {
     fn gen_output(&self) -> String;
     fn tessellate(&self, 
         builder: &mut Builder,
-        geometry: &mut VertexBuffers<VertexType, u16>);
+        geometry: &mut VertexBuffers<VertexType, u16>,
+        active_layer: bool);
     fn vertices(&self) -> Vec<Vertex>;
 }
 
@@ -50,7 +51,7 @@ impl SVGPathPart for MoveTo {
         o
     }
 
-    fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>) {
+    fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>, _active_layer: bool) {
         builder.move_to(self.point);
     }
 
@@ -75,7 +76,7 @@ impl SVGPathPart for LineTo {
         o
      }
 
-    fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>) {
+    fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>, _active_layer: bool) {
          builder.line_to(self.point);
     }
 
@@ -105,7 +106,7 @@ impl SVGPathPart for CubicBeizer {
         o
      }
 
-    fn tessellate(&self, builder: &mut Builder, mut geometry: &mut VertexBuffers<VertexType, u16>) {
+    fn tessellate(&self, builder: &mut Builder, mut geometry: &mut VertexBuffers<VertexType, u16>, _active_layer: bool) {
         builder.cubic_bezier_to(self.point_cs, self.point_es, self.point_n);
         // add command point direclty
         let stroke_options = StrokeOptions::tolerance(0.02)
@@ -175,31 +176,33 @@ impl SVGPathPart for QuadraticBeizer {
         o
     }
 
-    fn tessellate(&self, builder: &mut Builder, mut geometry: &mut VertexBuffers<VertexType, u16>) {
+    fn tessellate(&self, builder: &mut Builder, mut geometry: &mut VertexBuffers<VertexType, u16>, active_layer: bool) {
         builder.quadratic_bezier_to(self.point_c, self.point_n);
-        // add command point direclty
-        let stroke_options = StrokeOptions::tolerance(0.02)
-            .with_line_width(1.0)
-            .with_line_join(LineJoin::Round)
-            .with_line_cap(LineCap::Round);
-        let mut tessellator_stroke = StrokeTessellator::new();
-        let mut builder = Builder::new();
-        circle(&mut builder);
-        let scale = Scale::new(3.0);
-        let v = vector(self.point_c.x, self.point_c.y);
-        let p = builder.build();
-        tessellator_stroke.tessellate_path(
-            &p,
-            &stroke_options,
-            &mut BuffersBuilder::new(&mut geometry, |pos: Point, _: StrokeAttributes| {
-                // scale and then translate
-                let pos = scale.transform_point(pos) + v;
-                VertexType {
-                    position: pos.to_array(),
-                    colour: [1.,1.,1.,1.],
-                }
-            }),
-        ).unwrap();
+        // add control point direclty, if on the currently active layer
+        if active_layer {
+            let stroke_options = StrokeOptions::tolerance(0.02)
+                .with_line_width(1.0)
+                .with_line_join(LineJoin::Round)
+                .with_line_cap(LineCap::Round);
+            let mut tessellator_stroke = StrokeTessellator::new();
+            let mut builder = Builder::new();
+            circle(&mut builder);
+            let scale = Scale::new(3.0);
+            let v = vector(self.point_c.x, self.point_c.y);
+            let p = builder.build();
+            tessellator_stroke.tessellate_path(
+                &p,
+                &stroke_options,
+                &mut BuffersBuilder::new(&mut geometry, |pos: Point, _: StrokeAttributes| {
+                    // scale and then translate
+                    let pos = scale.transform_point(pos) + v;
+                    VertexType {
+                        position: pos.to_array(),
+                        colour: [1.,1.,1.,1.],
+                    }
+                }),
+            ).unwrap();
+        }
     }
 
     fn vertices(&self) -> Vec<Vertex> {
@@ -233,7 +236,7 @@ impl SVGPathPart for EllipticalArc {
         o
     }
 
-    fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>) {
+    fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>, _active_layer: bool) {
         // convert to an Lyon SVG ARC and then to a arc with centre notation, and then finally we can
         // use Lyon to tessellate
         let svg = SvgArc { 
@@ -276,7 +279,7 @@ impl SVGPathPart for Close {
         o
     }
 
-    fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>) {
+    fn tessellate(&self, builder: &mut Builder, _geometry: &mut VertexBuffers<VertexType, u16>, _active_layer: bool) {
         builder.close();
     }
 
