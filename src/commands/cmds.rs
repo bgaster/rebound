@@ -8,12 +8,12 @@
 use std::fs;
 
 use amethyst::{
-    ecs::prelude::{Entities},
-    core::ecs::{Component, DenseVecStorage, WriteStorage},
+    ecs::prelude::{Entity, Entities},
+    core::ecs::{Component, DenseVecStorage, WriteStorage, Write},
 };
 
 use lyon::{ 
-    math::{point, Point},
+    math::{point, Point, Vector},
     tessellation::{LineCap, LineJoin},
 };
 
@@ -21,7 +21,10 @@ extern crate tinyfiledialogs;
 use tinyfiledialogs::{YesNo, MessageBoxIcon, DefaultColorValue};
 
 
-use crate::bindings::{ActionBinding}; 
+use crate::{
+    bindings::{ActionBinding},
+    ui::mainui::{MainUI},
+}; 
 use crate::commands::{
     svg::{SVGEntity},
     svg_path::*,
@@ -53,6 +56,10 @@ pub enum Command {
     DrawColour([f32;4]),
     /// Add a control point to set of possible points to use in next draw action
     AddControlPoint(Point),
+    /// Drag events
+    MouseMoved(Vector),
+    /// Possible drag finished 
+    MouseReleased,
 }   
 
 pub const LAYER_FOREGROUND: usize = 0;
@@ -96,6 +103,7 @@ pub struct Draw {
     pub layers: [Layer; NUMBER_LAYERS],
     /// is mouse currently hovering an action ICON, if so which one 
     pub hover: Option<ActionBinding>,
+    pub control_drag: Option<Entity>,
 }
 
 /// default instance of draw data
@@ -106,6 +114,7 @@ impl Default for Draw {
             points: Vec::new(),
             layers: [Layer::default(), Layer::default(), Layer::default()],
             hover: None,
+            control_drag: None,
         }
     }
 }
@@ -230,6 +239,46 @@ impl Draw {
     pub fn inc_thickness(&mut self, inc: f32) {
         if self.layers[self.active_layer].thickness + inc >= 0.0 {
             self.layers[self.active_layer].thickness  += inc;
+        }
+    }
+
+    /// begin control point drag, if point hits control point
+    /// returns true if point is position of control point on current layer, otherwise false
+    pub fn start_drag<'a>(
+        &mut self, 
+        point: &Point,
+        quad_beizer: &WriteStorage<'a, QuadraticBeizer>) -> bool {
+        for e in &self.layers[self.active_layer].entities {
+            if let Some(entity) = e.entity {
+                if let Some(qb) = quad_beizer.get(entity) {
+                    if qb.point_c == *point {
+                        self.control_drag = Some(entity);
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    /// finish draging control point
+    pub fn stop_drag(&mut self) {
+        self.control_drag = None;
+    }
+
+    /// try and drag control point, only if we are already draging a control point
+    pub fn drag<'a>(
+        &mut self, 
+        diff: &Vector,
+        quad_beizer: &mut WriteStorage<'a, QuadraticBeizer>,
+        menu: &Write<'a, MainUI>) {
+        if let Some(entity) = self.control_drag {
+            if let Some(qb) = quad_beizer.get_mut(entity) {
+                // normalize point to grid
+                let p = qb.point_c + *diff;
+                let (x,y) = menu.normalize_mouse_position((p.x, p.y));
+                qb.point_c = point(x,y);
+            }
         }
     }
 

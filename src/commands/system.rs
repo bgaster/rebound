@@ -99,9 +99,18 @@ use amethyst::{
                 Command::DrawColour(colour) => {
                     draw.set_colour(colour);
                 }
-                // add point
+                // add point or begin control point drag
                 Command::AddControlPoint(point) => {
-                    draw.add_point(point);
+                    if !draw.start_drag(point, &quad_beizer) {
+                        // and new point
+                        draw.add_point(point);
+                    }
+                }
+                Command::MouseMoved(vector) => {
+                    draw.drag(vector, &mut quad_beizer, &menu);
+                }
+                Command::MouseReleased => {
+                    draw.stop_drag();
                 }
                 // draw beizer
                 Command::Input(ActionBinding::StrokeBezier) => {

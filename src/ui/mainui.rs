@@ -162,9 +162,13 @@ impl Default for MainUI {
 }
 
 impl MainUI {
+    pub fn mouse_position(&mut self, pos: (f32, f32)) {
+        self.mouse_position = self.normalize_mouse_position(pos);
+    }
+
     /// set current mouse position, input not normalized for DPI (due to Amethyst UI not handling DPI... ah)
     /// this is due to the fact that Amethyst does not handle DPI
-    pub fn mouse_position(&mut self, pos: (f32,f32)) {
+    pub fn normalize_mouse_position(&self, pos: (f32,f32)) -> (f32,f32) {
         // as the mouse position is intended to follow the grid, we clamp
         // so that it is.
         let (mut x, mut y) =  (
@@ -189,7 +193,8 @@ impl MainUI {
                 y = y + r;
             }
         }
-        self.mouse_position = (x as f32, y as f32);
+        
+        (x as f32, y as f32)
     }
 
     /// window dimensions 

@@ -19,6 +19,10 @@ use crate::{
    commands::{Command, Draw, HoverMode},
 };
 
+use lyon::{ 
+   math::{vector},
+};
+
 use amethyst_lyon::{
    utils::{Mesh}
 };
@@ -62,32 +66,6 @@ impl<'a> System<'a> for RUIEventHandlerSystem {
       if let Some(mouse_position) = input.mouse_position() {
          menu.mouse_position(mouse_position);
       }
-
-      //info!("{:?}", input.mouse_position());
-      // let mut scroll_up   = false;
-      // let mut scroll_down = false;
-      // let mut up          = false;
-      // let mut down        = false;
-
-      // collect keyboard inputs...
-   
-      // for ev in input_events.read(&mut self.input_event_rid) {
-      //    match *ev {
-      //       InputEvent::ActionPressed(ActionBinding::IFScrollUp) => {
-      //          scroll_up = true;
-      //       },
-      //       InputEvent::ActionPressed(ActionBinding::IFScrollDown) => {
-      //          scroll_down = true;
-      //       },
-      //       InputEvent::ActionPressed(ActionBinding::IFUp) => {
-      //          up = true;
-      //       },
-      //       InputEvent::ActionPressed(ActionBinding::IFDown) => {
-      //          down = true;
-      //       },
-      //       _ => {}
-      //    }
-      // }
      
       for ev in input_events.read(&mut self.input_event_rid) {
          match (*ev).clone() {
@@ -96,6 +74,12 @@ impl<'a> System<'a> for RUIEventHandlerSystem {
                if !menu.submenu_active {
                   menu.grid_click(&mut commands);
                }
+            }
+            InputEvent::MouseMoved { delta_x, delta_y }  => {
+               commands.single_write(Command::MouseMoved(vector(delta_x, delta_y)));
+            }
+            InputEvent::MouseButtonReleased(Left) => {
+               commands.single_write(Command::MouseReleased);
             }
             InputEvent::ActionPressed(action) => {
                if !menu.colour_input_focused {
