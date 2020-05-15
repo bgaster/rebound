@@ -462,6 +462,33 @@ impl Draw {
                     Close { }, close));
     }
 
+    /// create new drawing
+    pub fn clear<'a> (
+        &mut self,
+        entities: &Entities<'a>) {
+            // first clear layers
+            for layer in 0..NUMBER_LAYERS {
+                // delete any entities
+                for e in &self.layers[layer].entities {
+                    if let Some(entity) = e.entity {
+                        entities.delete(entity);
+                    }
+                }
+                self.layers[layer].entities.clear();
+                self.layers[layer].colour = [0.0, 0.0, 0.0, 1.0];
+                self.layers[layer].thickness = 1.0;
+                self.layers[layer].linecap = LineCap::Butt;
+                self.layers[layer].linejoin = LineJoin::Miter;
+                self.layers[layer].fill = false;
+            }
+
+            // now clear draw itself
+            self.points.clear();
+            self.active_layer = LAYER_FOREGROUND;
+            self.hover = None;
+            self.control_drag = None;
+    }
+
     /// save to JSON
     pub fn save<'a> (
         &self,

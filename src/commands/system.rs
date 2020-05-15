@@ -54,6 +54,9 @@ use amethyst::{
         // process any incoming commands
         for event in commands.read(&mut self.reader_id) {
             match event {
+                Command::Input(ActionBinding::FileNew) => {
+                    draw.clear(&entities);
+                }
                 // display/enable grid
                 Command::Input(ActionBinding::ViewToggleGrid) => {
                     menu.toggle_grid();
