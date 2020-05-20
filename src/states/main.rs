@@ -10,7 +10,7 @@ use amethyst::{
     window::ScreenDimensions,
 };
 
-use log::{info, error};
+use log::{info};
 
 use crate:: {
     ui::mainui::{MainUI},

@@ -6,9 +6,8 @@
 
 use amethyst::{
      derive::SystemDesc,
-     ecs::{Read, Write, System, SystemData, Entities, WriteStorage, ReadStorage},
+     ecs::{Read, Write, System, SystemData, Entities, WriteStorage},
      shrev::{EventChannel, ReaderId},
-     window::{ScreenDimensions},
   };
   
   use crate::{
@@ -54,9 +53,6 @@ use amethyst::{
         // process any incoming commands
         for event in commands.read(&mut self.reader_id) {
             match event {
-                Command::Input(ActionBinding::FileNew) => {
-                    draw.clear(&entities);
-                }
                 // display/enable grid
                 Command::Input(ActionBinding::ViewToggleGrid) => {
                     menu.toggle_grid();
@@ -153,11 +149,19 @@ use amethyst::{
                 }
                 // file save
                 Command::Input(ActionBinding::FileSave) => {
-                    draw.save(menu.dimensions(), &move_to, &line_to, &quad_beizer, &arc, &close);
+                    draw.save(true, menu.dimensions(), &move_to, &line_to, &quad_beizer, &arc, &close);
+                }
+                // new file
+                Command::Input(ActionBinding::FileNew) => {
+                    draw.clear(&entities);
                 }
                 // file open
                 Command::Input(ActionBinding::FileOpen) => {
                     draw.load(&entities, &mut move_to, &mut line_to, &mut quad_beizer, &mut arc, &mut close);
+                }
+                // save SVG file
+                Command::Input(ActionBinding::FileExportVector) => {
+                    draw.save(false, menu.dimensions(), &move_to, &line_to, &quad_beizer, &arc, &close);
                 }
                 _ => {
                     info!("{:?}", event);

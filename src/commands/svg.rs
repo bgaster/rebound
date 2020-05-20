@@ -19,7 +19,6 @@ use amethyst_lyon::{
 };
 
 extern crate lyon;
-use lyon::math::{point, Point, Vector, vector, Scale};
 use lyon::path::{Builder};
 use lyon::tessellation::*;
 
@@ -27,10 +26,13 @@ use crate::commands::svg_path::*;
 
 const DOC_TYPE: &'static str = "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \
 \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n";
-const  XMLNS: &'static str = "version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" \
-xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n";
-const STANDALONE_YES: &'static str = "<?xml version=\"1.0\" standalone=\"yes\"?>\n";
-const STANDALONE_NO: &'static str = "<?xml version=\"1.0\" standalone=\"no\"?>\n";
+const  XMLNS: &'static str = "xmlns=\"http://www.w3.org/2000/svg\"\n     height=\"720mm\" \
+viewBox=\"0 0 720 720\" width=\"720mm\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.11.1\" ";
+const VERSION: &'static str = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+
+pub fn svg_file(body: &str) -> String {
+    VERSION.to_string() + DOC_TYPE + " <svg " + XMLNS + ">\n" + body + "</svg>"
+}
 
 pub trait LayerTag {
 }

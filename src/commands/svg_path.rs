@@ -18,9 +18,9 @@ use crate::{
 };
 
 extern crate lyon;
-use lyon::math::{point, Point, Vector, vector, Scale, Angle};
-use lyon::path::{Path, Builder};
-use lyon::geom::{Arc, SvgArc, arc::ArcFlags};
+use lyon::math::{Point, vector, Scale, Angle};
+use lyon::path::{Builder};
+use lyon::geom::{SvgArc, arc::ArcFlags};
 use lyon::tessellation::*;
 
 pub const MOVETO_NAME: &str = "move_to";

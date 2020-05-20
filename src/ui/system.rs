@@ -15,8 +15,8 @@ use amethyst::{
 
 use crate::{
    ui::mainui::{MainUI},  
-   bindings::{InputBindingTypes, ActionBinding},
-   commands::{Command, Draw, HoverMode},
+   bindings::{InputBindingTypes},
+   commands::{Command, HoverMode},
 };
 
 use lyon::{ 
@@ -26,8 +26,6 @@ use lyon::{
 use amethyst_lyon::{
    utils::{Mesh}
 };
-
-use log::info;
 
 #[derive(SystemDesc)]
 #[system_desc(name(RUIEventHandlerSystemDesc))]

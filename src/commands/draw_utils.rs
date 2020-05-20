@@ -37,15 +37,18 @@ pub fn circle(builder: &mut Builder) {
 
 //-----------------------------------------------------------------------------
 // Simple data structure to serailize between JSON and Draw representation
+// NOTE: necessary as we cannot serialize Spec entities
 //-----------------------------------------------------------------------------
 
-
+/// canvas dimensions
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Size {
     pub width: u32,
     pub height: u32,
 }
 
+/// A single 'vertex' is used to represent all data for a command, other than
+/// its type.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Vertex {
     pub x: f32,
@@ -53,11 +56,13 @@ pub struct Vertex {
 }
 
 impl From<Point> for Vertex {
+    /// convert from a Lyon (euclid) point to a vertex
     fn from(point: Point) -> Self {
         Vertex { x: point.x, y: point.y }
     }
 }
 
+/// A single draw command, name and a set of vertices
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SVGType {
     #[serde(rename = "type")]
@@ -65,32 +70,37 @@ pub struct SVGType {
     pub vertices: Vec<Vertex>,
 }
 
+/// Serializable style attributes for each layer
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Style {
     pub thickness: f32,
-    #[serde(rename = "linecap")]
     pub linecap: String,
-    #[serde(rename = "linejoin")]
     pub linejoin: String,
     pub colour: [f32;4],
     pub fill: String,
 }
 
+/// Internal intermediate representaition of drawing
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ReboundFile {
+    /// size of window (currently fixed)
     pub settings: Size,
+    /// drawing commands for each layer
     pub layers: Vec<Vec<SVGType>>,
+    /// style commands for each layer
     pub styles: Vec<Style>,
 }
 
 impl ReboundFile {
-    pub fn from_json(data: String) -> Self {
-        //TODO: don't just panic
-        serde_json::from_str(&data[..]).unwrap()
+    // wrap serde API so it is not exposed into rest of app
+
+    /// generate rebound file, internal intermediate representation, from JSON
+    pub fn from_json(data: String) -> Result<Self> {
+        serde_json::from_str(&data[..])
     }
 
-    pub fn to_json(&self) -> String {
-        //TODO: add actual error checking
-        serde_json::to_string(self).unwrap()
+    /// generate JSON from internal intermediate representation 
+    pub fn to_json(&self) -> Result<String> {
+        serde_json::to_string(self)
     }
 }

@@ -18,22 +18,24 @@ use lyon::{
 };
 
 extern crate tinyfiledialogs;
-use tinyfiledialogs::{YesNo, MessageBoxIcon, DefaultColorValue};
+//use tinyfiledialogs::{YesNo, MessageBoxIcon, DefaultColorValue};
 
+use palette::{Pixel, Srgb, LinSrgb};
 
 use crate::{
     bindings::{ActionBinding},
     ui::mainui::{MainUI},
 }; 
 use crate::commands::{
-    svg::{SVGEntity},
+    svg::{SVGEntity, svg_file},
     svg_path::*,
     draw_utils::*,
 };
 
 //-----------------------------------------------------------------------------
 
-const DEFAULT_FILE_NAME: &str = "rebound.json";
+const DEFAULT_FILE_NAME_JSON: &str = "rebound.json";
+const DEFAULT_FILE_NAME_SVG: &str = "rebound.svg";
 
 //-----------------------------------------------------------------------------
 
@@ -471,7 +473,10 @@ impl Draw {
                 // delete any entities
                 for e in &self.layers[layer].entities {
                     if let Some(entity) = e.entity {
-                        entities.delete(entity);
+                        match entities.delete(entity) {
+                            Ok(_) => {}
+                            Err(_) => {}
+                        }
                     }
                 }
                 self.layers[layer].entities.clear();
@@ -492,6 +497,7 @@ impl Draw {
     /// save to JSON
     pub fn save<'a> (
         &self,
+        to_json: bool,
         dimensions: (u32,u32),
         move_to: &WriteStorage<'a, MoveTo>,
         line_to: &WriteStorage<'a, LineTo>,
@@ -500,14 +506,96 @@ impl Draw {
         close: &WriteStorage<'a, Close>) {
         
         // pop up save dialog 
-        match tinyfiledialogs::save_file_dialog("Save", DEFAULT_FILE_NAME) {
+        let default_name = if to_json { DEFAULT_FILE_NAME_JSON } else { DEFAULT_FILE_NAME_SVG };
+        match tinyfiledialogs::save_file_dialog("Save", default_name) {
             Some(file) => {
-                let rebound_file = self.to_file(dimensions, move_to, line_to, quad_beizer, arc, close);
-                fs::write(file, rebound_file.to_json()).expect("Unable to write file");
+                if to_json {
+                    let rebound_file = self.to_file(dimensions, move_to, line_to, quad_beizer, arc, close);
+                    if let Ok(json) = rebound_file.to_json() {
+                        match fs::write(file, json) {
+                            Ok(_) => {}
+                            Err(_) => {
+                                // TODO: add error dialog box
+                            }
+                        }
+                    }
+                    else {
+                        // TODO: add error dialog box
+                    }
+                }
+                else {
+                    let mut body = "".to_string();
+                    for layer in 0..NUMBER_LAYERS {
+                        body += &self.to_path(layer, move_to, line_to, quad_beizer, arc, close)[..];
+                    }
+                    let svg = svg_file(&body[..]);
+                    match fs::write(file, svg) {
+                        Ok(_) => {}
+                        Err(_) => {
+                            // TODO: add error dialog box
+                        }
+                    }
+                }
             },
             None => {},
         }
     }
+
+    /// generate arrtibutes for layer
+    fn layer_attribute(&self, layer: usize) -> String {
+        let pixel: [u8; 3] = Srgb::from_linear(LinSrgb::new(
+            self.layers[layer].colour[0], 
+            self.layers[layer].colour[1], 
+            self.layers[layer].colour[2]))
+                .into_format()
+                .into_raw();
+        let colour = hex::encode(pixel);
+
+        if self.layers[layer].fill { 
+            "".to_string() + " fill=\"#" + &colour[..] + "\" " 
+        } 
+        else { 
+            "fill=\"none\"".to_string() +  
+            " stroke=\"#" + &colour[..] + "\"" +
+            " stroke-linecap=\"" + &format!("{:?}", self.layers[layer].linecap)[..] + "\"" +
+            " stroke-linejoin=\"" + &format!("{:?}", self.layers[layer].linejoin)[..] + "\"" +
+            " stroke-width=\"" + &(self.layers[layer].thickness as u32).to_string()[..] + "\" " 
+        }
+    }
+
+    /// convert to svg path 
+    fn to_path<'a>(
+        &self,
+        layer: usize,
+        move_to: &WriteStorage<'a, MoveTo>,
+        line_to: &WriteStorage<'a, LineTo>,
+        quad_beizer: &WriteStorage<'a, QuadraticBeizer>,
+        arc: &WriteStorage<'a, EllipticalArc>,
+        close: &WriteStorage<'a, Close>) -> String {
+            let attr = self.layer_attribute(layer);
+            let mut path = "    <path ".to_string() + &attr[..] + "d=\"";
+            for e in &self.layers[layer].entities {
+                if let Some(entity) = e.entity {
+                    if let Some(m_to) = move_to.get(entity) {
+                        path += &m_to.gen_output()[..];
+                    }
+                    else if let Some(l_to) = line_to.get(entity) {
+                        path += &l_to.gen_output()[..];
+                    }
+                    else if let Some(q_beizer) = quad_beizer.get(entity) {
+                        path += &q_beizer.gen_output()[..];
+                    }
+                    else if let Some(close) = close.get(entity) {
+                        path += &close.gen_output()[..];
+                    }
+                    else if let Some(arc) = arc.get(entity) {
+                        path += &arc.gen_output()[..];
+                    }
+                }
+            }
+            path + "\"/>\n"
+    }
+
 
     /// convert to internal file format
     fn to_file<'a>(
@@ -585,57 +673,66 @@ impl Draw {
         close: &mut WriteStorage<'a, Close>) {
         
         // pop up save dialog 
-        match tinyfiledialogs::open_file_dialog("Open", DEFAULT_FILE_NAME, None) {
+        match tinyfiledialogs::open_file_dialog("Open", DEFAULT_FILE_NAME_JSON, None) {
             Some(file) => {
-                // TODO: remove panic!
-                let rebound = ReboundFile::from_json(fs::read_to_string(file).expect("Unable to read file"));
-                for layer in 0..NUMBER_LAYERS {
-                    self.active_layer = layer;
-                    // handle types
-                    for svgt in &rebound.layers[layer] {
-                        match &svgt.command[..] {
-                            MOVETO_NAME => {
-                                self.add_point(&point(svgt.vertices[0].x, svgt.vertices[0].y));
-                            },
-                            LINETO_NAME => {
-                                self.add_point(&point(svgt.vertices[0].x, svgt.vertices[0].y));
-                                self.line(entities, move_to, line_to);
-                            },
-                            QUADRATIC_BEIZER_NAME => {
-                                self.add_point(&point(svgt.vertices[0].x, svgt.vertices[0].y));
-                                self.add_point(&point(svgt.vertices[1].x, svgt.vertices[1].y));
-                                self.quad_beizer(entities, move_to, quad_beizer);
-                            },
-                            CUBIC_BEIZER_NAME => {
-                                // not generated at the moment
-                            },
-                            ELLIPTICAL_ARC_NAME => {
-                                self.add_point(&point(svgt.vertices[0].x, svgt.vertices[0].y));
-                                self.add_point(&point(svgt.vertices[1].x, svgt.vertices[1].y));
-                                self.arc(svgt.vertices[4].y == 1.0, entities, move_to, line_to, arc);
-                            },
-                            CLOSE_NAME => { 
-                                self.close(entities, close);
-                            },
-                            _ => {},
-                        }
-                    }
+                if let Ok(data) = fs::read_to_string(file) {
+                    if let Ok(rebound) = ReboundFile::from_json(data) {
+                        for layer in 0..NUMBER_LAYERS {
+                            self.active_layer = layer;
+                            // handle types
+                            for svgt in &rebound.layers[layer] {
+                                match &svgt.command[..] {
+                                    MOVETO_NAME => {
+                                        self.add_point(&point(svgt.vertices[0].x, svgt.vertices[0].y));
+                                    },
+                                    LINETO_NAME => {
+                                        self.add_point(&point(svgt.vertices[0].x, svgt.vertices[0].y));
+                                        self.line(entities, move_to, line_to);
+                                    },
+                                    QUADRATIC_BEIZER_NAME => {
+                                        self.add_point(&point(svgt.vertices[0].x, svgt.vertices[0].y));
+                                        self.add_point(&point(svgt.vertices[1].x, svgt.vertices[1].y));
+                                        self.quad_beizer(entities, move_to, quad_beizer);
+                                    },
+                                    CUBIC_BEIZER_NAME => {
+                                        // not generated at the moment
+                                    },
+                                    ELLIPTICAL_ARC_NAME => {
+                                        self.add_point(&point(svgt.vertices[0].x, svgt.vertices[0].y));
+                                        self.add_point(&point(svgt.vertices[1].x, svgt.vertices[1].y));
+                                        self.arc(svgt.vertices[4].y == 1.0, entities, move_to, line_to, arc);
+                                    },
+                                    CLOSE_NAME => { 
+                                        self.close(entities, close);
+                                    },
+                                    _ => {},
+                                }
+                            }
 
-                    // handle style
-                    self.layers[layer].thickness = rebound.styles[layer].thickness;
-                    self.layers[layer].linecap = if rebound.styles[layer].linecap == "Butt" { LineCap::Butt } 
-                                                 else if rebound.styles[layer].linecap == "Round" { LineCap::Round } 
-                                                 else { LineCap::Square };
-                    self.layers[layer].linejoin = match &rebound.styles[layer].linejoin[..] {
-                        "Miter" => LineJoin::Miter,
-                        "Bevel" => LineJoin::Bevel,
-                        "MiterClip" => LineJoin::MiterClip,
-                        _ => LineJoin::Round,
-                    };
-                    self.layers[layer].colour = rebound.styles[layer].colour;
-                    self.layers[layer].fill = rebound.styles[layer].fill == "fill";
+                            // handle style
+                            self.layers[layer].thickness = rebound.styles[layer].thickness;
+                            self.layers[layer].linecap = 
+                                    if rebound.styles[layer].linecap == "Butt" { LineCap::Butt } 
+                                    else if rebound.styles[layer].linecap == "Round" { LineCap::Round } 
+                                    else { LineCap::Square };
+                            self.layers[layer].linejoin = match &rebound.styles[layer].linejoin[..] {
+                                "Miter" => LineJoin::Miter,
+                                "Bevel" => LineJoin::Bevel,
+                                "MiterClip" => LineJoin::MiterClip,
+                                _ => LineJoin::Round,
+                            };
+                            self.layers[layer].colour = rebound.styles[layer].colour;
+                            self.layers[layer].fill = rebound.styles[layer].fill == "fill";
+                        }
+                        self.active_layer = LAYER_FOREGROUND;
+                    }
+                    else {
+                        // TODO: add error dialog box
+                    }
                 }
-                self.active_layer = LAYER_FOREGROUND;
+                else {
+                    // TODO: add error dialog box
+                }
             },
             None => {},
         }

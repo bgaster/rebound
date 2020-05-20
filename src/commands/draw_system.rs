@@ -15,7 +15,7 @@ use amethyst_lyon::{
  };
 
 extern crate lyon;
-use lyon::math::{point, Point, Vector, vector, Scale};
+use lyon::math::{Point, vector, Scale};
 use lyon::path::{Path, Builder};
 use lyon::tessellation::*;
  
