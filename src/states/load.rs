@@ -44,6 +44,7 @@ impl SimpleState for LoadState {
         let dimensions = (*world.read_resource::<ScreenDimensions>()).clone();
 
         self.dpi = dimensions.hidpi_factor();
+
         // the main menu is always visible so added here
         self.root = world.exec(|mut creator: UiCreator<'_>| {
             if dimensions.hidpi_factor() == 1. {

@@ -40,13 +40,19 @@ mod commands;
 use bindings::{InputBindingTypes};
 use bundle::{ReboundBundle};
 
+const DISPLAY: &'static str = "config/display.ron";
+#[cfg(target_os = "macos")]
+const BINDINGS: &'static str = "bindings_macos.ron";
+#[cfg(not(target_os = "macos"))]
+const BINDINGS: &'static str = "bindings.ron";
+
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
 
     let app_root = application_root_dir()?;
-    let display_config_path = app_root.join("config/display.ron");
+    let display_config_path = app_root.join(DISPLAY);
     let assets_dir = app_root.join("assets/");
-    let bindings_config = app_root.join("config").join("bindings.ron");
+    let bindings_config = app_root.join("config").join(BINDINGS);
 
     // let colour = Srgba::new(1.000, 0.687, 0.344, 1.000).into_linear();
     

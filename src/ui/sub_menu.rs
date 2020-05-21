@@ -13,12 +13,49 @@ use amethyst::{
 
 use crate::{
     states::{MainAppState},    
-    bindings::{ActionBinding},
-    ui::mainui::{MainUI}, 
+    bindings::{ActionBinding}, 
     commands::{Command},   
 };
 
-use log::{info, error};
+use log::{error};
+
+#[cfg(not(target_os = "macos"))]
+mod const_menus {
+    pub const FILE_MENU: &'static str = "file_menu.ron";
+    pub const FILE_MENU_2XDPI: &'static str = "file_menu_2xdpi.ron";
+    pub const EDIT_MENU: &'static str = "edit_menu.ron";
+    pub const EDIT_MENU_2XDPI: &'static str = "edit_menu_2xdpi.ron";
+    pub const VIEW_MENU: &'static str = "view_menu.ron";
+    pub const VIEW_MENU_2XDPI: &'static str = "view_menu_2xdpi.ron";
+    pub const LAYERS_MENU: &'static str = "layers_menu.ron";
+    pub const LAYERS_MENU_2XDPI: &'static str = "layers_menu_2xdpi.ron";
+    pub const STYLE_MENU: &'static str = "style_menu.ron";
+    pub const STYLE_MENU_2XDPI: &'static str = "style_menu_2xdpi.ron";
+    pub const STROKE_MENU: &'static str = "stroke_menu.ron";
+    pub const STROKE_MENU_2XDPI: &'static str = "stroke_menu_2xdpi.ron";
+    pub const CONTROL_MENU: &'static str = "control_menu.ron";
+    pub const CONTROL_MENU_2XDPI: &'static str = "control_menu_2xdpi.ron";
+}
+
+#[cfg(target_os = "macos")]
+mod const_menus {
+    pub const FILE_MENU: &'static str = "file_menu_macos.ron";
+    pub const FILE_MENU_2XDPI: &'static str = "file_menu_2xdpi_macos.ron";
+    pub const EDIT_MENU: &'static str = "edit_menu_macos.ron";
+    pub const EDIT_MENU_2XDPI: &'static str = "edit_menu_2xdpi_macos.ron";
+    pub const VIEW_MENU: &'static str = "view_menu_macos.ron";
+    pub const VIEW_MENU_2XDPI: &'static str = "view_menu_2xdpi_macos.ron";
+    pub const LAYERS_MENU: &'static str = "layers_menu_macos.ron";
+    pub const LAYERS_MENU_2XDPI: &'static str = "layers_menu_2xdpi_macos.ron";
+    pub const STYLE_MENU: &'static str = "style_menu_macos.ron";
+    pub const STYLE_MENU_2XDPI: &'static str = "style_menu_2xdpi_macos.ron";
+    pub const STROKE_MENU: &'static str = "stroke_menu.ron";
+    pub const STROKE_MENU_2XDPI: &'static str = "stroke_menu_2xdpi.ron";
+    pub const CONTROL_MENU: &'static str = "control_menu.ron";
+    pub const CONTROL_MENU_2XDPI: &'static str = "control_menu_2xdpi.ron";
+}
+
+use const_menus::*;
 
 /// 
 #[derive(Default)]
@@ -57,8 +94,9 @@ pub fn dot_menu() -> SubMenu {
 
 /// SubMenu for File sub menu
 pub fn file_menu() -> SubMenu {
+    println!("{}", FILE_MENU);
     SubMenu {
-        files: ("file_menu.ron".to_owned(), "file_menu_2xdpi.ron".to_owned()),
+        files: (FILE_MENU.to_string(), FILE_MENU_2XDPI.to_string()),
         names: vec![
             ("file_new".to_owned(), ActionBinding::FileNew),
             ("file_open".to_owned(), ActionBinding::FileOpen),
@@ -72,7 +110,7 @@ pub fn file_menu() -> SubMenu {
 /// SubMenu for File sub menu
 pub fn edit_menu() -> SubMenu {
     SubMenu {
-        files: ("edit_menu.ron".to_owned(), "edit_menu_2xdpi.ron".to_owned()),
+        files: (EDIT_MENU.to_string(), EDIT_MENU_2XDPI.to_string()),
         names: vec![
             ("edit_undo".to_owned(), ActionBinding::EditUndo),
             ("edit_redo".to_owned(), ActionBinding::EditRedo),
@@ -83,7 +121,7 @@ pub fn edit_menu() -> SubMenu {
 /// SubMenu for File sub menu
 pub fn view_menu() -> SubMenu {
     SubMenu {
-        files: ("view_menu.ron".to_owned(), "view_menu_2xdpi.ron".to_owned()),
+        files: (VIEW_MENU.to_string(), VIEW_MENU_2XDPI.to_string()),
         names: vec![
             ("view_colour_picker".to_owned(), ActionBinding::ViewColourPicker),
             ("view_toggle_grid".to_owned(), ActionBinding::ViewToggleGrid),
@@ -95,7 +133,7 @@ pub fn view_menu() -> SubMenu {
 /// SubMenu for File sub menu
 pub fn layers_menu() -> SubMenu {
     SubMenu {
-        files: ("layers_menu.ron".to_owned(), "layers_menu_2xdpi.ron".to_owned()),
+        files: (LAYERS_MENU.to_string(), LAYERS_MENU_2XDPI.to_string()),
         names: vec![
             ("layers_foreground".to_owned(), ActionBinding::LayersForeground),
             ("layers_middleground".to_owned(), ActionBinding::LayersMiddleground),
@@ -108,7 +146,7 @@ pub fn layers_menu() -> SubMenu {
 /// SubMenu for Stroke sub menu
 pub fn stroke_menu() -> SubMenu {
     SubMenu {
-        files: ("stroke_menu.ron".to_owned(), "stroke_menu_2xdpi.ron".to_owned()),
+        files: (STROKE_MENU.to_string(), STROKE_MENU_2XDPI.to_string()),
         names: vec![
             ("stroke_line".to_owned(), ActionBinding::StrokeLine),
             ("stroke_arc".to_owned(), ActionBinding::StrokeArc),
@@ -126,7 +164,7 @@ pub fn stroke_menu() -> SubMenu {
 /// SubMenu for Control sub menu
 pub fn control_menu() -> SubMenu {
     SubMenu {
-        files: ("control_menu.ron".to_owned(), "control_menu_2xdpi.ron".to_owned()),
+        files: (CONTROL_MENU.to_string(), CONTROL_MENU_2XDPI.to_string()),
         names: vec![
             ("control_add_point".to_owned(), ActionBinding::ControlAddPoint),
             ("control_move_up".to_owned(), ActionBinding::ControlMoveUp),
@@ -141,7 +179,7 @@ pub fn control_menu() -> SubMenu {
 /// SubMenu for Stroke sub menu
 pub fn style_menu() -> SubMenu {
     SubMenu {
-        files: ("style_menu.ron".to_owned(), "style_menu_2xdpi.ron".to_owned()),
+        files: (STYLE_MENU.to_string(), STROKE_MENU_2XDPI.to_string()),
         names: vec![
             ("style_line_cap".to_owned(), ActionBinding::StyleLineCap),
             ("style_line_join".to_owned(), ActionBinding::StyleLineJoin),

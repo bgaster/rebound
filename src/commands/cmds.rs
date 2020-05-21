@@ -105,7 +105,10 @@ pub struct Draw {
     pub layers: [Layer; NUMBER_LAYERS],
     /// is mouse currently hovering an action ICON, if so which one 
     pub hover: Option<ActionBinding>,
+    /// control point that is currently being dragged
     pub control_drag: Option<Entity>,
+    /// entites that have been undone, cleared when layer changes or new command added
+    pub redo: Vec<SVGEntity>,
 }
 
 /// default instance of draw data
@@ -117,6 +120,7 @@ impl Default for Draw {
             layers: [Layer::default(), Layer::default(), Layer::default()],
             hover: None,
             control_drag: None,
+            redo: Vec::new(),
         }
     }
 }
