@@ -163,6 +163,15 @@ use amethyst::{
                 Command::Input(ActionBinding::FileExportVector) => {
                     draw.save(false, menu.dimensions(), &move_to, &line_to, &quad_beizer, &arc, &close);
                 }
+                Command::Input(ActionBinding::EditUndo) => {
+                    draw.undo();
+                }
+                Command::Input(ActionBinding::EditRedo) => {
+                    draw.redo();
+                }
+                Command::MouseClickRight => {
+                    draw.clear_points();
+                }
                 _ => {
                     info!("{:?}", event);
                 }

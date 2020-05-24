@@ -179,7 +179,7 @@ pub fn control_menu() -> SubMenu {
 /// SubMenu for Stroke sub menu
 pub fn style_menu() -> SubMenu {
     SubMenu {
-        files: (STYLE_MENU.to_string(), STROKE_MENU_2XDPI.to_string()),
+        files: (STYLE_MENU.to_string(), STYLE_MENU_2XDPI.to_string()),
         names: vec![
             ("style_line_cap".to_owned(), ActionBinding::StyleLineCap),
             ("style_line_join".to_owned(), ActionBinding::StyleLineJoin),

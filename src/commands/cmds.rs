@@ -62,6 +62,8 @@ pub enum Command {
     MouseMoved(Vector),
     /// Possible drag finished 
     MouseReleased,
+    /// right mouse button clicked
+    MouseClickRight,
 }   
 
 pub const LAYER_FOREGROUND: usize = 0;
@@ -107,8 +109,10 @@ pub struct Draw {
     pub hover: Option<ActionBinding>,
     /// control point that is currently being dragged
     pub control_drag: Option<Entity>,
-    /// entites that have been undone, cleared when layer changes or new command added
-    pub redo: Vec<SVGEntity>,
+    /// previous actions that undo can apply to (level, number of commands)
+    pub undo: Vec<(usize, usize)>,
+    /// entites that have been redone (level, svg command)
+    pub redo: Vec<(usize, Vec<SVGEntity>)>,
 }
 
 /// default instance of draw data
@@ -120,6 +124,7 @@ impl Default for Draw {
             layers: [Layer::default(), Layer::default(), Layer::default()],
             hover: None,
             control_drag: None,
+            undo: Vec::new(),
             redo: Vec::new(),
         }
     }
@@ -129,6 +134,11 @@ impl Draw {
     /// create new instance of draw
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// clear vertices
+    pub fn clear_points(&mut self) {
+        self.points.clear();
     }
 
     /// hover action ends
@@ -314,6 +324,11 @@ impl Draw {
                         LineTo{ point: self.points[i] }, line_to));
             }
 
+            // track undo/redo
+            println!("p {}", self.points.len());
+            self.undo.push((self.active_layer, self.points.len()));
+            println!("pp {:?}", self.undo[0]);
+            self.redo.clear();
             // clear all the consumed points
             self.points.clear();
         }
@@ -405,8 +420,13 @@ impl Draw {
                                 x_axis_rotation: 0.,
                                 large_arc: false,
                                 sweep: sweep, }, arc));
-                }                
-            }            
+                }              
+                
+            }
+            // track undo/redo
+            self.undo.push((self.active_layer, (self.points.len()-1) * 2));
+            self.redo.clear();
+
             // clear all the consumed points
             self.points.clear();
         }
@@ -437,6 +457,9 @@ impl Draw {
                         },
                         quad_beizer));
             }
+            // track undo and redo
+            self.undo.push((self.active_layer, 1 + (self.points.len()-1) / 2));
+            self.redo.clear();
             // clear all the consumed points
             self.points.clear();
         }
@@ -466,6 +489,9 @@ impl Draw {
                 SVGEntity::new(
                     entities,
                     Close { }, close));
+             // track undo/redo
+             self.undo.push((self.active_layer, 1));
+             self.redo.clear();
     }
 
     /// create new drawing
@@ -496,6 +522,8 @@ impl Draw {
             self.active_layer = LAYER_FOREGROUND;
             self.hover = None;
             self.control_drag = None;
+            self.undo.clear();
+            self.redo.clear();
     }
 
     /// save to JSON
@@ -739,6 +767,33 @@ impl Draw {
                 }
             },
             None => {},
+        }
+    }
+
+    /// handle undo command
+    pub fn undo(&mut self) {
+        if let Some((layer, number)) = self.undo.pop() {
+            let mut cmds = Vec::new();
+            for _ in 0..number {
+                if let Some(entity) = self.layers[layer].entities.pop() {
+                    cmds.push(entity); 
+                }
+            }
+            self.redo.push((layer, cmds));
+        }
+    }
+
+    /// handle redo command
+    pub fn redo(&mut self) {
+        if let Some((layer, mut cmds)) = self.redo.pop() {
+            let len = cmds.len();
+            for i in 0..len {
+                if let Some(entity) = cmds.pop() {
+                    self.layers[layer].entities.push(entity);
+                }
+            }
+            // setup cmds for undo
+            self.undo.push((layer, len));
         }
     }
 }

@@ -11,11 +11,12 @@ use amethyst::{
    shrev::{EventChannel, ReaderId},
    ui::{UiEvent, UiEventType, UiText},
    input::{InputEvent, InputHandler},
+   winit::{MouseButton},
 };
 
 use crate::{
    ui::mainui::{MainUI},  
-   bindings::{InputBindingTypes},
+   bindings::{InputBindingTypes, ActionBinding},
    commands::{Command, HoverMode},
 };
 
@@ -65,29 +66,60 @@ impl<'a> System<'a> for RUIEventHandlerSystem {
          menu.mouse_position(mouse_position);
       }
      
+      let mut undo = false;
+      let mut redo = false;
+      let mut close = false;
       for ev in input_events.read(&mut self.input_event_rid) {
          match (*ev).clone() {
-            InputEvent::MouseButtonPressed(Left) => {
+            InputEvent::MouseButtonPressed(MouseButton::Left) => {
                // process grid clicks, e.g. setting active points
                if !menu.submenu_active {
                   menu.grid_click(&mut commands);
                }
             }
+            InputEvent::MouseButtonPressed(MouseButton::Right) => {
+               // right click kills vertices
+               if !menu.submenu_active {
+                  commands.single_write(Command::MouseClickRight);
+               }
+            }
             InputEvent::MouseMoved { delta_x, delta_y }  => {
                commands.single_write(Command::MouseMoved(vector(delta_x, delta_y)));
             }
-            InputEvent::MouseButtonReleased(Left) => {
+            InputEvent::MouseButtonReleased(MouseButton::Left) => {
                commands.single_write(Command::MouseReleased);
             }
             InputEvent::ActionPressed(action) => {
                if !menu.colour_input_focused {
-                  commands.single_write(Command::Input(action));
+                  if action == ActionBinding::EditUndo {
+                     undo = true;
+                  }
+                  else if action == ActionBinding::EditRedo {
+                     redo = true;
+                  }
+                  else if action == ActionBinding::StrokeClose {
+                     close = true;
+                  }
+                  else {
+                     commands.single_write(Command::Input(action));
+                  }
                }
             }
             _ => {
                //info!("[RUI SYSTEM] You just interacted with a io element: {:?} {:?}", ev, input.mouse_position());
             }
          }
+      }
+
+      // handle redo and undo in specific order as redo generates both!
+      if redo {
+         commands.single_write(Command::Input(ActionBinding::EditRedo));
+      }
+      else if undo {
+         commands.single_write(Command::Input(ActionBinding::EditUndo));
+      }
+      else if close {
+         commands.single_write(Command::Input(ActionBinding::StrokeClose));
       }
      
       for ev in ui_events.read(&mut self.reader_id) {
