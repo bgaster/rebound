@@ -12,7 +12,7 @@ design an in particular my work on [SVG Interfaces](https://muses-dmi.github.io/
 
 ## Version 0.1
 
-   * [Mac OS (10.11)]("releases/Rebound-Installer.dmg")
+   * [Mac OS (10.11)](releases/Rebound-Installer.dmg)
 
 # Rust
 
